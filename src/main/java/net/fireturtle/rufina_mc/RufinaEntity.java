@@ -48,8 +48,8 @@ import java.util.function.Predicate;
 
 
 public class RufinaEntity extends PassiveEntity implements Tameable, Angerable {
-    protected static final TrackedData<Byte>  TAMEABLE_FLAGS;
-    protected static final TrackedData<Optional<UUID>> OWNER_UUID;
+    protected static final TrackedData<Byte> TAMEABLE_FLAGS = DataTracker.registerData(TameableEntity.class, TrackedDataHandlerRegistry.BYTE);
+    protected static final TrackedData<Optional<UUID>> OWNER_UUID = DataTracker.registerData(TameableEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
     private static final TrackedData<Boolean> BEGGING;
     private static final TrackedData<Integer> COLLAR_COLOR;
     private static final TrackedData<Integer> ANGER_TIME;
@@ -72,7 +72,9 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable {
         this.setPathfindingPenalty(PathNodeType.POWDER_SNOW, -1.0F);
         this.setPathfindingPenalty(PathNodeType.DANGER_POWDER_SNOW, -1.0F);
     }
-
+    public EntityView method_48926() {
+        return super.getWorld();
+    }
 
     public boolean isTamed() {
         return ((Byte)this.dataTracker.get(TAMEABLE_FLAGS) & 4) != 0;
@@ -525,34 +527,5 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable {
         }
     }
 
-    private class AvoidLlamaGoal<T extends LivingEntity> extends FleeEntityGoal<T> {
-        private final WolfEntity wolf;
 
-        public AvoidLlamaGoal(WolfEntity wolf, Class<T> fleeFromType, float distance, double slowSpeed, double fastSpeed) {
-            super(wolf, fleeFromType, distance, slowSpeed, fastSpeed);
-            this.wolf = wolf;
-        }
-
-        public boolean canStart() {
-            if (super.canStart() && this.targetEntity instanceof LlamaEntity) {
-                return !this.wolf.isTamed() && this.isScaredOf((LlamaEntity)this.targetEntity);
-            } else {
-                return false;
-            }
-        }
-
-        private boolean isScaredOf(LlamaEntity llama) {
-            return llama.getStrength() >= RufinaEntity.this.random.nextInt(5);
-        }
-
-        public void start() {
-            RufinaEntity.this.setTarget((LivingEntity)null);
-            super.start();
-        }
-
-        public void tick() {
-            RufinaEntity.this.setTarget((LivingEntity)null);
-            super.tick();
-        }
-    }
 }

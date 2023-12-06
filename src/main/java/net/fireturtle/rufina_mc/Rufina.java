@@ -1,6 +1,11 @@
 package net.fireturtle.rufina_mc;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
+import net.minecraft.entity.EntityDimensions;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -16,6 +21,12 @@ public class Rufina implements ModInitializer {
 	// That way, it's clear which mod wrote info, warnings, and errors.
     public static final Logger LOGGER = LoggerFactory.getLogger("rufina_mc");
 	public static final Item HALBERD = new Item(new FabricItemSettings());
+
+	public static final EntityType<RufinaEntity> RUFINA = Registry.register(
+			Registries.ENTITY_TYPE,
+			new Identifier("fireturtle", "rufina"),
+			FabricEntityTypeBuilder.create(SpawnGroup.CREATURE, RufinaEntity::new).dimensions(EntityDimensions.fixed(0.75f, 0.75f)).build()
+	);
 	@Override
 	public void onInitialize() {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
@@ -23,5 +34,6 @@ public class Rufina implements ModInitializer {
 		// Proceed with mild caution.
 		Registry.register(Registries.ITEM, new Identifier("rufina_mc", "halberd"), HALBERD);
 		LOGGER.info("Hello Fabric world!");
+		FabricDefaultAttributeRegistry.register(RUFINA, RufinaEntity.createMobAttributes());
 	}
 }
