@@ -16,10 +16,10 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"net.fireturtle.rufina_mc.Rufina_mc"
+			"net.fireturtle.rufina_mc.Rufina"
 		],
 		"client": [
-			"net.fireturtle.rufina_mc.Rufina_mcClient"
+			"net.fireturtle.rufina_mc.RufinaClient"
 		]
 	},
 	"mixins": [
