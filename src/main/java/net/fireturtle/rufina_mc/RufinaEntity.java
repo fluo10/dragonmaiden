@@ -123,7 +123,7 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable {
         this.targetSelector.add(8, new UniversalAngerGoal(this, true));
     }
 
-    public static DefaultAttributeContainer.Builder createWolfAttributes() {
+    public static DefaultAttributeContainer.Builder createMobAttributes() {
         return MobEntity.createMobAttributes().add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.30000001192092896).add(EntityAttributes.GENERIC_MAX_HEALTH, 8.0).add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 2.0);
     }
 
