@@ -2,9 +2,11 @@ package net.fireturtle.rufina_mc;
 
 import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.LeavesBlock;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.*;
-import net.minecraft.entity.ai.pathing.PathNodeType;
+import net.minecraft.entity.ai.pathing.*;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
@@ -15,10 +17,9 @@ import net.minecraft.entity.passive.*;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
-import net.minecraft.item.DyeItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.entity.projectile.ProjectileEntity;
+import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.item.*;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.tag.BlockTags;
@@ -38,20 +39,34 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.world.EntityView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
+import net.minecraft.world.WorldView;
 import net.minecraft.world.event.GameEvent;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
+import java.util.EnumSet;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
+import java.util.EnumSet;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.LeavesBlock;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.entity.ai.pathing.BirdNavigation;
+import net.minecraft.entity.ai.pathing.EntityNavigation;
+import net.minecraft.entity.ai.pathing.LandPathNodeMaker;
+import net.minecraft.entity.ai.pathing.MobNavigation;
+import net.minecraft.entity.ai.pathing.PathNodeType;
+import net.minecraft.entity.passive.TameableEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.WorldView;
 
 
-public class RufinaEntity extends PassiveEntity implements Tameable, Angerable {
-    protected static final TrackedData<Byte> TAMEABLE_FLAGS = DataTracker.registerData(TameableEntity.class, TrackedDataHandlerRegistry.BYTE);
-    protected static final TrackedData<Optional<UUID>> OWNER_UUID = DataTracker.registerData(TameableEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
-    private static final TrackedData<Boolean> BEGGING;
-    private static final TrackedData<Integer> COLLAR_COLOR;
+public class RufinaEntity extends PassiveEntity implements Tameable, Angerable, CrossbowUser, InventoryOwner{
+    protected static final TrackedData<Byte> TAMEABLE_FLAGS = DataTracker.registerData(RufinaEntity.class, TrackedDataHandlerRegistry.BYTE);
+    protected static final TrackedData<Optional<UUID>> OWNER_UUID = DataTracker.registerData(RufinaEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
+    private static final TrackedData<Boolean> CHARGING = DataTracker.registerData(RufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     private static final TrackedData<Integer> ANGER_TIME;
     public static final Predicate<LivingEntity> FOLLOW_TAMED_PREDICATE;
     private static final float WILD_MAX_HEALTH = 8.0F;
@@ -65,6 +80,7 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable {
     private static final UniformIntProvider ANGER_TIME_RANGE;
     @Nullable
     private UUID angryAt;
+    private final SimpleInventory inventory = new SimpleInventory(36);
     protected RufinaEntity(EntityType<?extends PassiveEntity> entityType, World world) {
         super(entityType, world);
         this.onTamedChanged();
@@ -104,12 +120,16 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable {
         return entity == this.getOwner();
     }
 
+    @Nullable
+    public RufinaEntity createChild(ServerWorld serverWorld, PassiveEntity passiveEntity) {
+        return null;
+    }
     protected void initGoals() {
         this.goalSelector.add(1, new SwimGoal(this));
         //this.goalSelector.add(1, new WolfEntity.WolfEscapeDangerGoal(1.5));
         this.goalSelector.add(4, new PounceAtTargetGoal(this, 0.4F));
         this.goalSelector.add(5, new MeleeAttackGoal(this, 1.0, true));
-        //this.goalSelector.add(6, new FollowOwnerGoal(this, 1.0, 10.0F, 2.0F, false));
+        this.goalSelector.add(6, new RufinaEntity.FollowOwnerGoal(this, 1.0, 10.0F, 2.0F, false));
         this.goalSelector.add(8, new WanderAroundFarGoal(this, 1.0));
         this.goalSelector.add(10, new LookAtEntityGoal(this, PlayerEntity.class, 8.0F));
         this.goalSelector.add(10, new LookAroundGoal(this));
@@ -132,8 +152,7 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable {
         this.dataTracker.startTracking(TAMEABLE_FLAGS, (byte) 0);
         this.dataTracker.startTracking(OWNER_UUID, Optional.empty());
 
-        this.dataTracker.startTracking(BEGGING, false);
-        this.dataTracker.startTracking(COLLAR_COLOR, DyeColor.RED.getId());
+        this.dataTracker.startTracking(CHARGING, false);
         this.dataTracker.startTracking(ANGER_TIME, 0);
     }
 
@@ -143,15 +162,12 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable {
 
     public void writeCustomDataToNbt(NbtCompound nbt) {
         super.writeCustomDataToNbt(nbt);
-        nbt.putByte("CollarColor", (byte)this.getCollarColor().getId());
         this.writeAngerToNbt(nbt);
     }
 
     public void readCustomDataFromNbt(NbtCompound nbt) {
         super.readCustomDataFromNbt(nbt);
-        if (nbt.contains("CollarColor", 99)) {
-            this.setCollarColor(DyeColor.byId(nbt.getInt("CollarColor")));
-        }
+
 
         this.readAngerFromNbt(this.getWorld(), nbt);
     }
@@ -197,11 +213,6 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable {
         super.tick();
         if (this.isAlive()) {
             this.lastBegAnimationProgress = this.begAnimationProgress;
-            if (this.isBegging()) {
-                this.begAnimationProgress += (1.0F - this.begAnimationProgress) * 0.4F;
-            } else {
-                this.begAnimationProgress += (0.0F - this.begAnimationProgress) * 0.4F;
-            }
 
             if (this.isWet()) {
                 this.furWet = true;
@@ -328,7 +339,7 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable {
         ItemStack itemStack = player.getStackInHand(hand);
         Item item = itemStack.getItem();
         if (this.getWorld().isClient) {
-            boolean bl = this.isOwner(player) || this.isTamed() || itemStack.isOf(Items.BONE) && !this.isTamed() && !this.hasAngerTime();
+            boolean bl = this.isOwner(player) || this.isTamed() || itemStack.isOf(Items.GOLDEN_APPLE) && !this.isTamed() && !this.hasAngerTime();
             return bl ? ActionResult.CONSUME : ActionResult.PASS;
         } else {
             label90: {
@@ -342,37 +353,17 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable {
                         return ActionResult.SUCCESS;
                     }
 
-                    if (!(item instanceof DyeItem)) {
                         break label90;
-                    }
 
-                    DyeItem dyeItem = (DyeItem)item;
-                    if (!this.isOwner(player)) {
-                        break label90;
-                    }
-
-                    DyeColor dyeColor = dyeItem.getColor();
-                    if (dyeColor != this.getCollarColor()) {
-                        this.setCollarColor(dyeColor);
-                        if (!player.getAbilities().creativeMode) {
-                            itemStack.decrement(1);
-                        }
-
-                        return ActionResult.SUCCESS;
-                    }
-                } else if (itemStack.isOf(Items.BONE) && !this.hasAngerTime()) {
+                } else if (itemStack.isOf(Items.GOLDEN_APPLE) && !this.hasAngerTime()) {
                     if (!player.getAbilities().creativeMode) {
                         itemStack.decrement(1);
                     }
 
-                    if (this.random.nextInt(3) == 0) {
                         this.setOwner(player);
                         this.navigation.stop();
                         this.setTarget((LivingEntity)null);
                         this.getWorld().sendEntityStatus(this, (byte)7);
-                    } else {
-                        this.getWorld().sendEntityStatus(this, (byte)6);
-                    }
 
                     return ActionResult.SUCCESS;
                 }
@@ -443,35 +434,10 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable {
         this.angryAt = angryAt;
     }
 
-    public DyeColor getCollarColor() {
-        return DyeColor.byId((Integer)this.dataTracker.get(COLLAR_COLOR));
-    }
 
-    public void setCollarColor(DyeColor color) {
-        this.dataTracker.set(COLLAR_COLOR, color.getId());
-    }
 
-    @Nullable
-    public WolfEntity createChild(ServerWorld serverWorld, PassiveEntity passiveEntity) {
-        WolfEntity wolfEntity = (WolfEntity)EntityType.WOLF.create(serverWorld);
-        if (wolfEntity != null) {
-            UUID uUID = this.getOwnerUuid();
-            if (uUID != null) {
-                wolfEntity.setOwnerUuid(uUID);
-                wolfEntity.setTamed(true);
-            }
-        }
 
-        return wolfEntity;
-    }
 
-    public void setBegging(boolean begging) {
-        this.dataTracker.set(BEGGING, begging);
-    }
-
-    public boolean isBegging() {
-        return (Boolean)this.dataTracker.get(BEGGING);
-    }
 
     public boolean canAttackWithOwner(LivingEntity target, LivingEntity owner) {
         if (!(target instanceof CreeperEntity) && !(target instanceof GhastEntity)) {
@@ -502,19 +468,48 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable {
         return new Vector3f(0.0F, dimensions.height - 0.03125F * scaleFactor, -0.0625F * scaleFactor);
     }
 
-    public static boolean canSpawn(EntityType<WolfEntity> type, WorldAccess world, SpawnReason spawnReason, BlockPos pos, Random random) {
+    public static boolean canSpawn(EntityType<RufinaEntity> type, WorldAccess world, SpawnReason spawnReason, BlockPos pos, Random random) {
         return world.getBlockState(pos.down()).isIn(BlockTags.WOLVES_SPAWNABLE_ON);
     }
 
     static {
-        BEGGING = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-        COLLAR_COLOR = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.INTEGER);
-        ANGER_TIME = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.INTEGER);
+        ANGER_TIME = DataTracker.registerData(RufinaEntity.class, TrackedDataHandlerRegistry.INTEGER);
         FOLLOW_TAMED_PREDICATE = (entity) -> {
             EntityType<?> entityType = entity.getType();
             return entityType == EntityType.SHEEP || entityType == EntityType.RABBIT || entityType == EntityType.FOX;
         };
         ANGER_TIME_RANGE = TimeHelper.betweenSeconds(20, 39);
+    }
+private boolean isCharging() {
+        return this.dataTracker.get(CHARGING);
+}
+    @Override
+    public void setCharging(boolean charging) {
+        this.dataTracker.set(CHARGING, charging);
+    }
+
+    @Override
+    public void shoot(LivingEntity target, ItemStack crossbow, ProjectileEntity projectile, float multiShotSpray) {
+        this.shoot(this, target, projectile, multiShotSpray, 1.6f);
+    }
+
+    @Override
+    public void postShoot() {
+
+    }
+
+    @Override
+    public void shootAt(LivingEntity target, float pullProgress) {
+        this.shoot(this, 1.6f);
+    }
+
+    public boolean canUseRangedWeapon(RangedWeaponItem weapon) {
+        return weapon == Items.CROSSBOW;
+    }
+
+    @Override
+    public SimpleInventory getInventory() {
+        return this.inventory;
     }
 
     class WolfEscapeDangerGoal extends EscapeDangerGoal {
@@ -526,6 +521,168 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable {
             return this.mob.shouldEscapePowderSnow() || this.mob.isOnFire();
         }
     }
+    protected void equipToMainHand(ItemStack stack){
+        this.equipLootStack(EquipmentSlot.MAINHAND, stack);
+    }
+    protected boolean canEquipStack(ItemStack stack) {
+        EquipmentSlot equipmentSlot = MobEntity.getPreferredEquipmentSlot(stack);
+        ItemStack itemStack = this.getEquippedStack(equipmentSlot);
+        return this.preferesNewEquipment(stack, itemStack);
+    }
+    protected boolean preferesNewEquipment(ItemStack newStack, ItemStack oldStack) {
+        boolean bl2;
+        if (EnchantmentHelper.hasBindingCurse(oldStack)) {
+            return false;
+        }
+        boolean bl = newStack.isOf(Items.CROSSBOW);
+        boolean bl3 = bl2 = oldStack.isOf(Items.CROSSBOW);
+        if (bl && !bl2) {
+            return true;
+        }
+        if (!bl && bl2) {
+            return false;
+        }
+        return false;
+    }
+
+    public class FollowOwnerGoal
+            extends Goal {
+        public static final int TELEPORT_DISTANCE = 12;
+        private static final int HORIZONTAL_RANGE = 2;
+        private static final int HORIZONTAL_VARIATION = 3;
+        private static final int VERTICAL_VARIATION = 1;
+        private final RufinaEntity rufina;
+        private LivingEntity owner;
+        private final WorldView world;
+        private final double speed;
+        private final EntityNavigation navigation;
+        private int updateCountdownTicks;
+        private final float maxDistance;
+        private final float minDistance;
+        private float oldWaterPathfindingPenalty;
+        private final boolean leavesAllowed;
+
+        public FollowOwnerGoal(RufinaEntity tameable, double speed, float minDistance, float maxDistance, boolean leavesAllowed) {
+            this.rufina = tameable;
+            this.world = tameable.getWorld();
+            this.speed = speed;
+            this.navigation = tameable.getNavigation();
+            this.minDistance = minDistance;
+            this.maxDistance = maxDistance;
+            this.leavesAllowed = leavesAllowed;
+            this.setControls(EnumSet.of(Goal.Control.MOVE, Goal.Control.LOOK));
+            if (!(tameable.getNavigation() instanceof MobNavigation) && !(tameable.getNavigation() instanceof BirdNavigation)) {
+                throw new IllegalArgumentException("Unsupported mob type for FollowOwnerGoal");
+            }
+        }
+
+        @Override
+        public boolean canStart() {
+            LivingEntity livingEntity = this.rufina.getOwner();
+            if (livingEntity == null) {
+                return false;
+            }
+            if (livingEntity.isSpectator()) {
+                return false;
+            }
+            if (this.cannotFollow()) {
+                return false;
+            }
+            if (this.rufina.squaredDistanceTo(livingEntity) < (double)(this.minDistance * this.minDistance)) {
+                return false;
+            }
+            this.owner = livingEntity;
+            return true;
+        }
+
+        @Override
+        public boolean shouldContinue() {
+            if (this.navigation.isIdle()) {
+                return false;
+            }
+            if (this.cannotFollow()) {
+                return false;
+            }
+            return !(this.rufina.squaredDistanceTo(this.owner) <= (double)(this.maxDistance * this.maxDistance));
+        }
+
+        private boolean cannotFollow() {
+            //this.isLeashed();
+            return false;
+        }
+
+        @Override
+        public void start() {
+            this.updateCountdownTicks = 0;
+            this.oldWaterPathfindingPenalty = this.rufina.getPathfindingPenalty(PathNodeType.WATER);
+            this.rufina.setPathfindingPenalty(PathNodeType.WATER, 0.0f);
+        }
+
+        @Override
+        public void stop() {
+            this.owner = null;
+            this.navigation.stop();
+            this.rufina.setPathfindingPenalty(PathNodeType.WATER, this.oldWaterPathfindingPenalty);
+        }
+
+        @Override
+        public void tick() {
+            this.rufina.getLookControl().lookAt(this.owner, 10.0f, this.rufina.getMaxLookPitchChange());
+            if (--this.updateCountdownTicks > 0) {
+                return;
+            }
+            this.updateCountdownTicks = this.getTickCount(10);
+            if (this.rufina.squaredDistanceTo(this.owner) >= 144.0) {
+                this.tryTeleport();
+            } else {
+                this.navigation.startMovingTo(this.owner, this.speed);
+            }
+        }
+
+        private void tryTeleport() {
+            BlockPos blockPos = this.owner.getBlockPos();
+            for (int i = 0; i < 10; ++i) {
+                int j = this.getRandomInt(-3, 3);
+                int k = this.getRandomInt(-1, 1);
+                int l = this.getRandomInt(-3, 3);
+                boolean bl = this.tryTeleportTo(blockPos.getX() + j, blockPos.getY() + k, blockPos.getZ() + l);
+                if (!bl) continue;
+                return;
+            }
+        }
+
+        private boolean tryTeleportTo(int x, int y, int z) {
+            if (Math.abs((double)x - this.owner.getX()) < 2.0 && Math.abs((double)z - this.owner.getZ()) < 2.0) {
+                return false;
+            }
+            if (!this.canTeleportTo(new BlockPos(x, y, z))) {
+                return false;
+            }
+            this.rufina.refreshPositionAndAngles((double)x + 0.5, y, (double)z + 0.5, this.rufina.getYaw(), this.rufina.getPitch());
+            this.navigation.stop();
+            return true;
+        }
+
+        private boolean canTeleportTo(BlockPos pos) {
+            PathNodeType pathNodeType = LandPathNodeMaker.getLandNodeType(this.world, pos.mutableCopy());
+            if (pathNodeType != PathNodeType.WALKABLE) {
+                return false;
+            }
+            BlockState blockState = this.world.getBlockState(pos.down());
+            if (!this.leavesAllowed && blockState.getBlock() instanceof LeavesBlock) {
+                return false;
+            }
+            BlockPos blockPos = pos.subtract(this.rufina.getBlockPos());
+            return this.world.isSpaceEmpty(this.rufina, this.rufina.getBoundingBox().offset(blockPos));
+        }
+
+        private int getRandomInt(int min, int max) {
+            return this.rufina.getRandom().nextInt(max - min + 1) + min;
+        }
+    }
+
 
 
 }
+
+
