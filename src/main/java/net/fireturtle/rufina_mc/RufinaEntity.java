@@ -1,9 +1,6 @@
 package net.fireturtle.rufina_mc;
 
-import net.fireturtle.rufina_mc.ai.goal.RufinaAttackWithOwnerGoal;
-import net.fireturtle.rufina_mc.ai.goal.RufinaFollowOwnerGoal;
-import net.fireturtle.rufina_mc.ai.goal.RufinaTrackOwnerAttackerGoal;
-import net.fireturtle.rufina_mc.ai.goal.RufinaUntamedActiveTargetGoal;
+import net.fireturtle.rufina_mc.ai.goal.*;
 import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.LeavesBlock;
@@ -85,6 +82,13 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable, 
     @Nullable
     private UUID angryAt;
     private final SimpleInventory inventory = new SimpleInventory(36);
+
+    private static final int field_30629 = 5;
+
+    @Nullable
+    private BlockPos wanderTarget;
+    private int despawnDelay;
+
     protected RufinaEntity(EntityType<?extends PassiveEntity> entityType, World world) {
         super(entityType, world);
         this.onTamedChanged();
@@ -137,6 +141,7 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable, 
         this.goalSelector.add(8, new WanderAroundFarGoal(this, 1.0));
         this.goalSelector.add(10, new LookAtEntityGoal(this, PlayerEntity.class, 8.0F));
         this.goalSelector.add(10, new LookAroundGoal(this));
+        this.goalSelector.add(2, new RufinaWanderToTargetGoal(this, 2.0, 0.35));
         this.targetSelector.add(1, new RufinaTrackOwnerAttackerGoal(this));
         this.targetSelector.add(2, new RufinaAttackWithOwnerGoal(this));
         this.targetSelector.add(3, (new RevengeGoal(this, new Class[0])).setGroupRevenge(new Class[0]));
@@ -145,6 +150,7 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable, 
         this.targetSelector.add(6, new RufinaUntamedActiveTargetGoal<TurtleEntity>(this, TurtleEntity.class, false, TurtleEntity.BABY_TURTLE_ON_LAND_FILTER));
         this.targetSelector.add(7, new ActiveTargetGoal(this, AbstractSkeletonEntity.class, false));
         this.targetSelector.add(8, new UniversalAngerGoal(this, true));
+
     }
 
     public static DefaultAttributeContainer.Builder createMobAttributes() {
@@ -557,9 +563,28 @@ private boolean isCharging() {
         return false;
     }
 
+    @Nullable
+    public BlockPos getWanderTarget() {
+        return this.wanderTarget;
+    }
 
+    public void setDespawnDelay(int despawnDelay) {
+        this.despawnDelay = despawnDelay;
+    }
 
+    public int getDespawnDelay() {
+        return this.despawnDelay;
+    }
 
+    private void tickDespawnDelay() {
+        //if (this.despawnDelay > 0 && !this.hasCustomer() && --this.despawnDelay == 0) {
+        if (this.despawnDelay > 0 && !this.isTamed() && --this.despawnDelay == 0) {
+            this.discard();
+        }
+    }
+    public void setWanderTarget(@Nullable BlockPos wanderTarget) {
+        this.wanderTarget = wanderTarget;
+    }
 
 }
 
