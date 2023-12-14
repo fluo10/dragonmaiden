@@ -35,5 +35,7 @@ public class Rufina implements ModInitializer {
 		Registry.register(Registries.ITEM, new Identifier("rufina_mc", "halberd"), HALBERD);
 		LOGGER.info("Hello Fabric world!");
 		FabricDefaultAttributeRegistry.register(RUFINA, RufinaEntity.createMobAttributes());
+
 	}
+
 }

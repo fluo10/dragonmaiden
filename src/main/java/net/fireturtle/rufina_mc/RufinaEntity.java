@@ -4,6 +4,7 @@ import net.fireturtle.rufina_mc.ai.goal.*;
 import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.LeavesBlock;
+import net.minecraft.client.render.entity.PlayerModelPart;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.*;
@@ -89,6 +90,8 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable, 
     private BlockPos wanderTarget;
     private int despawnDelay;
 
+    protected static final TrackedData<Byte> PLAYER_MODEL_PARTS = DataTracker.registerData(RufinaEntity.class, TrackedDataHandlerRegistry.BYTE);
+
     protected RufinaEntity(EntityType<?extends PassiveEntity> entityType, World world) {
         super(entityType, world);
         this.onTamedChanged();
@@ -164,6 +167,7 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable, 
 
         this.dataTracker.startTracking(CHARGING, false);
         this.dataTracker.startTracking(ANGER_TIME, 0);
+        this.dataTracker.startTracking(PLAYER_MODEL_PARTS, (byte)127);
     }
 
     protected void playStepSound(BlockPos pos, BlockState state) {
@@ -299,7 +303,7 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable, 
     }
 
     protected float getActiveEyeHeight(EntityPose pose, EntityDimensions dimensions) {
-        return dimensions.height * 0.8F;
+        return dimensions.height * 1.6F;
     }
 
     public boolean damage(DamageSource source, float amount) {
@@ -584,6 +588,9 @@ private boolean isCharging() {
     }
     public void setWanderTarget(@Nullable BlockPos wanderTarget) {
         this.wanderTarget = wanderTarget;
+    }
+    public boolean isPartVisible(PlayerModelPart modelPart) {
+        return (this.getDataTracker().get(PLAYER_MODEL_PARTS) & modelPart.getBitFlag()) == modelPart.getBitFlag();
     }
 
 }
