@@ -8,23 +8,17 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
-import net.minecraft.predicate.entity.EntityPredicate;
 import net.minecraft.predicate.entity.EntityPredicates;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.TypeFilter;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.profiling.jfr.event.WorldLoadFinishedEvent;
 import net.minecraft.world.World;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +49,11 @@ public class Rufina implements ModInitializer {
 	@Nullable
 	public World rufinaWorld = null;
 
+	public static final Integer DEFAULT_SPAWN_TIMER = 60;
+	Integer spawnTimer = DEFAULT_SPAWN_TIMER;
+
+	@Nullable
+	RufinaPersistentState state;
 
 	@Override
 	public void onInitialize() {
@@ -65,34 +64,64 @@ public class Rufina implements ModInitializer {
 		LOGGER.info("Hello Fabric world!");
 		FabricDefaultAttributeRegistry.register(RUFINA, RufinaEntity.createMobAttributes());
 		ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
-			RufinaPersistentState state = RufinaPersistentState.getServerState(server);
-			if (state.rufinaUuid == null) {
-				rufinaWorld = server.getOverworld();
-				RufinaEntity rufinaEntity = RUFINA.create(rufinaWorld);
-				BlockPos pos = rufinaWorld.getSpawnPos();
-				rufinaEntity.refreshPositionAndAngles(pos.getX(), pos.getY(), pos.getZ(), 0 , 0.0f);
+			//state = RufinaPersistentState.getServerState(server);
+			//if (state.rufinaUuid == null) {
+			// 	rufinaWorld = server.getOverworld();
+			// 	RufinaEntity rufinaEntity = RUFINA.create(rufinaWorld);
+			// 	BlockPos pos = rufinaWorld.getSpawnPos();
+			// 	rufinaEntity.refreshPositionAndAngles(pos.getX(), pos.getY(), pos.getZ(), 0 , 0.0f);
 
-				rufinaWorld.spawnEntity(rufinaEntity);
-				LOGGER.info("Create Rufina Entity: {}", rufinaEntity.getUuidAsString());
-				state.rufinaUuid = rufinaEntity.getUuid();
-			} else {
-				Iterable<ServerWorld> worlds = server.getWorlds();
+			// 	rufinaWorld.spawnEntity(rufinaEntity);
+			// 	LOGGER.info("Create Rufina Entity: {}", rufinaEntity.getUuidAsString());
+			// 	state.rufinaUuid = rufinaEntity.getUuid();
+			// } else {
+			// 	Iterable<ServerWorld> worlds = server.getWorlds();
 
-				for (ServerWorld world : worlds) {
-					rufinaEntity = (RufinaEntity)world.getEntity(state.rufinaUuid);
-					if (rufinaEntity != null) {
-						LOGGER.info("Found Rufina Entity: {}", rufinaEntity.getUuidAsString());
-						rufinaWorld = world;
-						break;
+			// 	for (ServerWorld world : worlds) {
+			// 		rufinaEntity = (RufinaEntity)world.getEntity(state.rufinaUuid);
+			// 		if (rufinaEntity != null) {
+			// 			LOGGER.info("Found Rufina Entity: {}", rufinaEntity.getUuidAsString());
+			// 			rufinaWorld = world;
+			// 			break;
+			// 		}
+			// 	}
+			// 	if (rufinaEntity == null) {
+			// 		LOGGER.info("Rufina entiti not found: {}", state.rufinaUuid);
+			// 	}
+			// }
+		});
+		ServerLifecycleEvents.SERVER_STOPPING.register((server) -> {
+			this.rufinaEntity = null;
+		});
+		ServerTickEvents.END_SERVER_TICK.register((server) -> {
+			if (this.rufinaEntity == null) {
+				LOGGER.info("Spawn Timer: {}", this.spawnTimer);
+				if (this.spawnTimer > 0) {
+					Iterable<ServerWorld> worlds = server.getWorlds();
+
+					for (ServerWorld world : worlds) {
+						List<? extends RufinaEntity> entities = world.getEntitiesByType(RUFINA, EntityPredicates.VALID_LIVING_ENTITY);
+						if (entities.size() != 0) {
+							this.rufinaWorld = world;
+							this.rufinaEntity = entities.get(0);
+							LOGGER.info("Found Rufina Entity: {}", this.rufinaEntity.getUuid());
+							this.spawnTimer = DEFAULT_SPAWN_TIMER;
+							return;
+						}
 					}
-				}
-				if (rufinaEntity == null) {
-					LOGGER.info("Rufina entiti not found: {}", state.rufinaUuid);
+					this.spawnTimer -= 1;
+				} else {
+					this.rufinaWorld = server.getOverworld();
+					this.rufinaEntity = RUFINA.create(this.rufinaWorld);
+					BlockPos pos = rufinaWorld.getSpawnPos();
+					this.rufinaEntity.refreshPositionAndAngles(pos.getX(), pos.getY(), pos.getZ(), 0 , 0.0f);
+	
+					this.rufinaWorld.spawnEntity(this.rufinaEntity);
+					LOGGER.info("Create Rufina Entity: {}", this.rufinaEntity.getUuidAsString());
+					
+					this.spawnTimer = DEFAULT_SPAWN_TIMER;
 				}
 			}
-		});
-		
-		ServerTickEvents.END_SERVER_TICK.register((server) -> {
 		});
 	}
 
