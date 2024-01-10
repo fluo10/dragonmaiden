@@ -17,6 +17,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 
 import java.util.List;
@@ -34,14 +35,20 @@ public class Rufina implements ModInitializer {
 	public static final Item HALBERD = new Item(new FabricItemSettings());
 	public static final String MOD_ID = "net.fireturtle.rufina_mc";
 	public static final Identifier RUFINA_UUID = new Identifier(MOD_ID, "rufina_uuid");
-	public static final EntityType<RufinaEntity> RUFINA = Registry.register(
+	public static final EntityType<HumanRufinaEntity> HUMAN_RUFINA = Registry.register(
 			Registries.ENTITY_TYPE,
-			new Identifier(MOD_ID, "rufina"),
-			FabricEntityTypeBuilder.create(SpawnGroup.CREATURE, RufinaEntity::new).dimensions(EntityDimensions.fixed(0.75f, 0.75f)).build()
+			new Identifier(MOD_ID, "human_rufina"),
+			FabricEntityTypeBuilder.create(SpawnGroup.CREATURE, HumanRufinaEntity::new).dimensions(EntityDimensions.fixed(0.75f, 0.75f)).build()
+	);
+	public static final EntityType<BeastRufinaEntity> BEAST_RUFINA = Registry.register(
+			Registries.ENTITY_TYPE,
+			new Identifier(MOD_ID, "beast_rufina"),
+			FabricEntityTypeBuilder.create(SpawnGroup.CREATURE, BeastRufinaEntity::new).dimensions(EntityDimensions.fixed(0.75f, 0.75f)).build()
 	);
 
+
 	@Nullable
-	public RufinaEntity rufinaEntity = null;
+	public AbstractRufinaEntity rufinaEntity = null;
 	
 	@Nullable
 	public PlayerEntity playerEntity = null;
@@ -52,9 +59,6 @@ public class Rufina implements ModInitializer {
 	public static final Integer DEFAULT_SPAWN_TIMER = 60;
 	Integer spawnTimer = DEFAULT_SPAWN_TIMER;
 
-	@Nullable
-	RufinaPersistentState state;
-
 	@Override
 	public void onInitialize() {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
@@ -62,7 +66,9 @@ public class Rufina implements ModInitializer {
 		// Proceed with mild caution.
 		Registry.register(Registries.ITEM, new Identifier("rufina_mc", "halberd"), HALBERD);
 		LOGGER.info("Hello Fabric world!");
-		FabricDefaultAttributeRegistry.register(RUFINA, RufinaEntity.createMobAttributes());
+		FabricDefaultAttributeRegistry.register(HUMAN_RUFINA, HumanRufinaEntity.createMobAttributes());
+		FabricDefaultAttributeRegistry.register(BEAST_RUFINA, BeastRufinaEntity.createMobAttributes());
+
 		ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
 			//state = RufinaPersistentState.getServerState(server);
 			//if (state.rufinaUuid == null) {
@@ -90,39 +96,51 @@ public class Rufina implements ModInitializer {
 			// 	}
 			// }
 		});
+		ServerWorldEvents.LOAD.register((server, world) -> {
+			
+		});
 		ServerLifecycleEvents.SERVER_STOPPING.register((server) -> {
 			this.rufinaEntity = null;
 		});
+			
 		ServerTickEvents.END_SERVER_TICK.register((server) -> {
-			if (this.rufinaEntity == null) {
-				LOGGER.info("Spawn Timer: {}", this.spawnTimer);
-				if (this.spawnTimer > 0) {
-					Iterable<ServerWorld> worlds = server.getWorlds();
-
-					for (ServerWorld world : worlds) {
-						List<? extends RufinaEntity> entities = world.getEntitiesByType(RUFINA, EntityPredicates.VALID_LIVING_ENTITY);
-						if (entities.size() != 0) {
-							this.rufinaWorld = world;
-							this.rufinaEntity = entities.get(0);
-							LOGGER.info("Found Rufina Entity: {}", this.rufinaEntity.getUuid());
-							this.spawnTimer = DEFAULT_SPAWN_TIMER;
-							return;
-						}
+			@Nullable
+			BeastRufinaEntity beastRufinaEntity = null;
+			@Nullable
+			HumanRufinaEntity humanRufinaEntity = null;
+			LOGGER.info("Spawn Timer: {}", this.spawnTimer);
+			if (this.spawnTimer > 0) {
+				Iterable<ServerWorld> worlds = server.getWorlds();
+				
+				for (ServerWorld world2 : worlds) {
+					List<? extends BeastRufinaEntity> beastRufinaEntities = world2.getEntitiesByType(BEAST_RUFINA, EntityPredicates.VALID_LIVING_ENTITY);
+					if (beastRufinaEntities.size() != 0) {
+						beastRufinaEntity = beastRufinaEntities.get(0);
+						LOGGER.info("Found BeastRufinaEntity: {}", beastRufinaEntity.getUuidAsString());
+						this.spawnTimer = -1;
+						return;
 					}
-					this.spawnTimer -= 1;
-				} else {
-					this.rufinaWorld = server.getOverworld();
-					this.rufinaEntity = RUFINA.create(this.rufinaWorld);
-					BlockPos pos = rufinaWorld.getSpawnPos();
-					this.rufinaEntity.refreshPositionAndAngles(pos.getX(), pos.getY(), pos.getZ(), 0 , 0.0f);
-	
-					this.rufinaWorld.spawnEntity(this.rufinaEntity);
-					LOGGER.info("Create Rufina Entity: {}", this.rufinaEntity.getUuidAsString());
-					
-					this.spawnTimer = DEFAULT_SPAWN_TIMER;
+					List<? extends HumanRufinaEntity> humanRufinaEntities = world2.getEntitiesByType(HUMAN_RUFINA, EntityPredicates.VALID_LIVING_ENTITY);
+					if (humanRufinaEntities.size() != 0) {
+						humanRufinaEntity = humanRufinaEntities.get(0);
+						LOGGER.info("Found HumanRufinaEntity: {}", humanRufinaEntity.getUuidAsString());
+						this.spawnTimer = -1;
+						return;
+					}
 				}
+				this.spawnTimer -= 1;
+			} else if (spawnTimer == 0) {
+				ServerWorld overWorld = server.getOverworld();
+				beastRufinaEntity = BEAST_RUFINA.create(overWorld);
+				BlockPos pos = overWorld.getSpawnPos();
+				beastRufinaEntity.refreshPositionAndAngles(pos.getX(), pos.getY(), pos.getZ(), 0 , 0.0f);
+				overWorld.spawnEntity(beastRufinaEntity);
+				LOGGER.info("Create BeastRufinaEntity: {}", beastRufinaEntity.getUuidAsString());
+				this.spawnTimer = -1;
 			}
+			
 		});
+		
 	}
 
 }

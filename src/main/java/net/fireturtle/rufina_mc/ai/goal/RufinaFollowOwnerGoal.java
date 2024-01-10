@@ -1,6 +1,6 @@
 package net.fireturtle.rufina_mc.ai.goal;
 
-import net.fireturtle.rufina_mc.RufinaEntity;
+import net.fireturtle.rufina_mc.AbstractRufinaEntity;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.LeavesBlock;
 import net.minecraft.entity.LivingEntity;
@@ -18,7 +18,7 @@ public class RufinaFollowOwnerGoal
     private static final int HORIZONTAL_RANGE = 2;
     private static final int HORIZONTAL_VARIATION = 3;
     private static final int VERTICAL_VARIATION = 1;
-    private final RufinaEntity rufina;
+    private final AbstractRufinaEntity rufina;
     private LivingEntity owner;
     private final WorldView world;
     private final double speed;
@@ -29,7 +29,7 @@ public class RufinaFollowOwnerGoal
     private float oldWaterPathfindingPenalty;
     private final boolean leavesAllowed;
 
-    public RufinaFollowOwnerGoal(RufinaEntity tameable, double speed, float minDistance, float maxDistance, boolean leavesAllowed) {
+    public RufinaFollowOwnerGoal(AbstractRufinaEntity tameable, double speed, float minDistance, float maxDistance, boolean leavesAllowed) {
         this.rufina = tameable;
         this.world = tameable.getWorld();
         this.speed = speed;

@@ -2,7 +2,9 @@ package net.fireturtle.rufina_mc;
 
 import net.fireturtle.rufina_mc.ai.goal.*;
 import net.minecraft.advancement.criterion.Criteria;
+import net.minecraft.block.BedBlock;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.LeavesBlock;
 import net.minecraft.client.render.entity.PlayerModelPart;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -65,11 +67,13 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldView;
 
 
-public class RufinaEntity extends PassiveEntity implements Tameable, Angerable, CrossbowUser, InventoryOwner{
-    protected static final TrackedData<Byte> TAMEABLE_FLAGS = DataTracker.registerData(RufinaEntity.class, TrackedDataHandlerRegistry.BYTE);
-    protected static final TrackedData<Optional<UUID>> OWNER_UUID = DataTracker.registerData(RufinaEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
-    private static final TrackedData<Boolean> CHARGING = DataTracker.registerData(RufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+public abstract class AbstractRufinaEntity extends PassiveEntity implements Tameable, Angerable, CrossbowUser, InventoryOwner{
+    protected static final TrackedData<Byte> TAMEABLE_FLAGS = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BYTE);
+    protected static final TrackedData<Optional<UUID>> OWNER_UUID = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
+    private static final TrackedData<Boolean> CHARGING = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     private static final TrackedData<Integer> ANGER_TIME;
+    protected static final TrackedData<Boolean> CONVERTING = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    
     public static final Predicate<LivingEntity> FOLLOW_TAMED_PREDICATE;
     private static final float WILD_MAX_HEALTH = 8.0F;
     private static final float TAMED_MAX_HEALTH = 20.0F;
@@ -80,6 +84,10 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable, 
     private float shakeProgress;
     private float lastShakeProgress;
     private static final UniformIntProvider ANGER_TIME_RANGE;
+    private int conversionTimer;
+    @Nullable
+    protected UUID converter;
+
     @Nullable
     private UUID angryAt;
     private final SimpleInventory inventory = new SimpleInventory(36);
@@ -90,9 +98,9 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable, 
     private BlockPos wanderTarget;
     private int despawnDelay;
 
-    protected static final TrackedData<Byte> PLAYER_MODEL_PARTS = DataTracker.registerData(RufinaEntity.class, TrackedDataHandlerRegistry.BYTE);
+    protected static final TrackedData<Byte> PLAYER_MODEL_PARTS = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BYTE);
 
-    protected RufinaEntity(EntityType<?extends PassiveEntity> entityType, World world) {
+    protected AbstractRufinaEntity(EntityType<?extends PassiveEntity> entityType, World world) {
         super(entityType, world);
         this.onTamedChanged();
         this.setTamed(false);
@@ -132,12 +140,12 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable, 
     }
 
     @Nullable
-    public RufinaEntity createChild(ServerWorld serverWorld, PassiveEntity passiveEntity) {
+    public AbstractRufinaEntity createChild(ServerWorld serverWorld, PassiveEntity passiveEntity) {
         return null;
     }
     protected void initGoals() {
         this.goalSelector.add(1, new SwimGoal(this));
-        this.goalSelector.add(1, new RufinaEntity.WolfEscapeDangerGoal(1.5));
+        this.goalSelector.add(1, new AbstractRufinaEntity.WolfEscapeDangerGoal(1.5));
         this.goalSelector.add(4, new PounceAtTargetGoal(this, 0.4F));
         this.goalSelector.add(5, new MeleeAttackGoal(this, 1.0, true));
         this.goalSelector.add(6, new RufinaFollowOwnerGoal(this, 1.0, 10.0F, 2.0F, false));
@@ -168,6 +176,7 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable, 
         this.dataTracker.startTracking(CHARGING, false);
         this.dataTracker.startTracking(ANGER_TIME, 0);
         this.dataTracker.startTracking(PLAYER_MODEL_PARTS, (byte)127);
+        this.dataTracker.startTracking(CONVERTING, false);
     }
 
     protected void playStepSound(BlockPos pos, BlockState state) {
@@ -224,6 +233,15 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable, 
     }
 
     public void tick() {
+        
+        if (!this.getWorld().isClient && this.isAlive() && this.isConverting()) {
+            int i = this.getConversionRate();
+            Rufina.LOGGER.info("Converting : {}", i);
+            this.conversionTimer -= i;
+            if (this.conversionTimer <= 0) {
+                this.finishConversion((ServerWorld)this.getWorld());
+            }
+        }
         super.tick();
         if (this.isAlive()) {
             this.lastBegAnimationProgress = this.begAnimationProgress;
@@ -404,6 +422,11 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable, 
             this.lastShakeProgress = 0.0F;
         } else if (status == 56) {
             this.resetShake();
+        } else if (status == EntityStatuses.PLAY_CURE_ZOMBIE_VILLAGER_SOUND) {
+            if (!this.isSilent()) {
+                    this.getWorld().playSound(this.getX(), this.getEyeY(), this.getZ(), SoundEvents.ENTITY_ZOMBIE_VILLAGER_CURE, this.getSoundCategory(), 1.0f + this.random.nextFloat(), this.random.nextFloat() * 0.7f + 0.3f, false);
+                }
+                return;
         } else {
             super.handleStatus(status);
         }
@@ -490,12 +513,12 @@ public class RufinaEntity extends PassiveEntity implements Tameable, Angerable, 
         return new Vector3f(0.0F, dimensions.height - 0.03125F * scaleFactor, -0.0625F * scaleFactor);
     }
 
-    public static boolean canSpawn(EntityType<RufinaEntity> type, WorldAccess world, SpawnReason spawnReason, BlockPos pos, Random random) {
+    public static boolean canSpawn(EntityType<AbstractRufinaEntity> type, WorldAccess world, SpawnReason spawnReason, BlockPos pos, Random random) {
         return world.getBlockState(pos.down()).isIn(BlockTags.WOLVES_SPAWNABLE_ON);
     }
 
     static {
-        ANGER_TIME = DataTracker.registerData(RufinaEntity.class, TrackedDataHandlerRegistry.INTEGER);
+        ANGER_TIME = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.INTEGER);
         FOLLOW_TAMED_PREDICATE = (entity) -> {
             EntityType<?> entityType = entity.getType();
             return entityType == EntityType.SHEEP || entityType == EntityType.RABBIT || entityType == EntityType.FOX;
@@ -536,7 +559,7 @@ private boolean isCharging() {
 
     class WolfEscapeDangerGoal extends EscapeDangerGoal {
         public WolfEscapeDangerGoal(double speed) {
-            super(RufinaEntity.this, speed);
+            super(AbstractRufinaEntity.this, speed);
         }
 
         protected boolean isInDanger() {
@@ -592,7 +615,46 @@ private boolean isCharging() {
     public boolean isPartVisible(PlayerModelPart modelPart) {
         return (this.getDataTracker().get(PLAYER_MODEL_PARTS) & modelPart.getBitFlag()) == modelPart.getBitFlag();
     }
+    protected boolean canConvertInWater() {
+        return false;
+    }
 
+    @Override
+    public boolean canImmediatelyDespawn(double distanceSquared) {
+        return !this.isConverting();
+    }
+
+    public boolean isConverting() {
+        return this.getDataTracker().get(CONVERTING);
+    }
+
+    protected void setConverting(@Nullable UUID uuid, int delay) {
+        this.converter = uuid;
+        this.conversionTimer = delay;
+        this.getDataTracker().set(CONVERTING, true);
+        this.getWorld().sendEntityStatus(this, EntityStatuses.PLAY_CURE_ZOMBIE_VILLAGER_SOUND);
+    }
+    private int getConversionRate() {
+        int i = 1;
+        if (this.random.nextFloat() < 0.01f) {
+            int j = 0;
+            BlockPos.Mutable mutable = new BlockPos.Mutable();
+            for (int k = (int)this.getX() - 4; k < (int)this.getX() + 4 && j < 14; ++k) {
+                for (int l = (int)this.getY() - 4; l < (int)this.getY() + 4 && j < 14; ++l) {
+                    for (int m = (int)this.getZ() - 4; m < (int)this.getZ() + 4 && j < 14; ++m) {
+                        BlockState blockState = this.getWorld().getBlockState(mutable.set(k, l, m));
+                        if (!blockState.isOf(Blocks.IRON_BARS) && !(blockState.getBlock() instanceof BedBlock)) continue;
+                        if (this.random.nextFloat() < 0.3f) {
+                            ++i;
+                        }
+                        ++j;
+                    }
+                }
+            }
+        }
+        return i;
+    }
+    protected abstract void finishConversion(ServerWorld world);
 }
 
 

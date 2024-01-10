@@ -3,7 +3,7 @@ package net.fireturtle.rufina_mc.ai.goal;
 
 import java.util.EnumSet;
 
-import net.fireturtle.rufina_mc.RufinaEntity;
+import net.fireturtle.rufina_mc.AbstractRufinaEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.TargetPredicate;
 import net.minecraft.entity.ai.goal.Goal;
@@ -12,11 +12,11 @@ import net.minecraft.entity.passive.TameableEntity;
 
 public class RufinaAttackWithOwnerGoal
         extends TrackTargetGoal {
-    private final RufinaEntity tameable;
+    private final AbstractRufinaEntity tameable;
     private LivingEntity attacking;
     private int lastAttackTime;
 
-    public RufinaAttackWithOwnerGoal(RufinaEntity tameable) {
+    public RufinaAttackWithOwnerGoal(AbstractRufinaEntity tameable) {
         super(tameable, false);
         this.tameable = tameable;
         this.setControls(EnumSet.of(Goal.Control.TARGET));

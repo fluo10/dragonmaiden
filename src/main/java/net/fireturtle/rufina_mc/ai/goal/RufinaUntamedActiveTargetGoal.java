@@ -2,7 +2,7 @@ package net.fireturtle.rufina_mc.ai.goal;
 
 import java.util.function.Predicate;
 
-import net.fireturtle.rufina_mc.RufinaEntity;
+import net.fireturtle.rufina_mc.AbstractRufinaEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.ActiveTargetGoal;
 import net.minecraft.entity.passive.TameableEntity;
@@ -15,9 +15,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public class RufinaUntamedActiveTargetGoal<T extends LivingEntity>
         extends ActiveTargetGoal<T> {
-    private final RufinaEntity tameable;
+    private final AbstractRufinaEntity tameable;
 
-    public RufinaUntamedActiveTargetGoal(RufinaEntity tameable, Class<T> targetClass, boolean checkVisibility, @Nullable Predicate<LivingEntity> targetPredicate) {
+    public RufinaUntamedActiveTargetGoal(AbstractRufinaEntity tameable, Class<T> targetClass, boolean checkVisibility, @Nullable Predicate<LivingEntity> targetPredicate) {
         super(tameable, targetClass, 10, checkVisibility, false, targetPredicate);
         this.tameable = tameable;
     }

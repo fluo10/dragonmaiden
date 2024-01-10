@@ -1,6 +1,6 @@
 package net.fireturtle.rufina_mc.ai.goal;
 
-import net.fireturtle.rufina_mc.RufinaEntity;
+import net.fireturtle.rufina_mc.AbstractRufinaEntity;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -9,11 +9,11 @@ import java.util.EnumSet;
 
 public class RufinaWanderToTargetGoal
         extends Goal {
-    final RufinaEntity trader;
+    final AbstractRufinaEntity trader;
     final double proximityDistance;
     final double speed;
 
-    public RufinaWanderToTargetGoal(RufinaEntity trader, double proximityDistance, double speed) {
+    public RufinaWanderToTargetGoal(AbstractRufinaEntity trader, double proximityDistance, double speed) {
         this.trader = trader;
         this.proximityDistance = proximityDistance;
         this.speed = speed;

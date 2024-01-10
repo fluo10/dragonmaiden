@@ -29,7 +29,7 @@ import net.minecraft.util.math.random.Random;
 import java.util.List;
 
 @Environment(EnvType.CLIENT)
-public class RufinaEntityModel extends BipedEntityModel<RufinaEntity> {
+public class HumanRufinaEntityModel extends BipedEntityModel<AbstractRufinaEntity> {
     private static final String EAR = "ear";
     private static final String CLOAK = "cloak";
     private static final String LEFT_SLEEVE = "left_sleeve";
@@ -46,7 +46,7 @@ public class RufinaEntityModel extends BipedEntityModel<RufinaEntity> {
     private final ModelPart ear;
     private final boolean thinArms;
 
-    public RufinaEntityModel(ModelPart root) {
+    public HumanRufinaEntityModel(ModelPart root) {
         super(root, RenderLayer::getEntityTranslucent);
         this.thinArms = true;
         this.ear = root.getChild("ear");
@@ -96,7 +96,7 @@ public class RufinaEntityModel extends BipedEntityModel<RufinaEntity> {
         this.cloak.render(matrices, vertices, light, overlay);
     }
 
-    public void setAngles(RufinaEntity livingEntity, float f, float g, float h, float i, float j) {
+    public void setAngles(AbstractRufinaEntity livingEntity, float f, float g, float h, float i, float j) {
         super.setAngles(livingEntity, f, g, h, i, j);
         this.leftPants.copyTransform(this.leftLeg);
         this.rightPants.copyTransform(this.rightLeg);
