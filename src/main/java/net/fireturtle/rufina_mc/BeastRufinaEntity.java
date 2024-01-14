@@ -23,13 +23,9 @@ public class BeastRufinaEntity extends AbstractRufinaEntity{
     @Override
     public ActionResult interactMob(PlayerEntity player, Hand hand) {
         ItemStack itemStack= player.getStackInHand(hand);
-        if ((player.getUuid() == this.getOwnerUuid()) && 
-        (itemStack.isOf(Items.APPLE))) {
-            if (!player.getAbilities().creativeMode) {
-                itemStack.decrement(1);
-            }
+        if ((player.getUuid() == this.getOwnerUuid())) {
             if (!this.getWorld().isClient) {
-                this.setConverting(player.getUuid(), this.random.nextInt(2401) + 3600);
+                this.setConverting(player.getUuid(), 600);
 
             }
             return ActionResult.SUCCESS;
@@ -43,10 +39,13 @@ public class BeastRufinaEntity extends AbstractRufinaEntity{
         PlayerEntity playerEntity;
         HumanRufinaEntity rufinaEntity = this.convertTo(Rufina.HUMAN_RUFINA, false);
 
-        rufinaEntity.setOwnerUuid(this.getOwnerUuid());
-        rufinaEntity.setAngerTime(this.getAngerTime());
 
         rufinaEntity.initialize(world, world.getLocalDifficulty(rufinaEntity.getBlockPos()), SpawnReason.CONVERSION, null, null);
+        rufinaEntity.setOwnerUuid(this.getOwnerUuid());
+        rufinaEntity.setAngerTime(this.getAngerTime());
+        rufinaEntity.setTamed(true);
+
+
         //if (super.converter != null && (playerEntity = world.getPlayerByUuid(this.converter)) instanceof ServerPlayerEntity) {
         //    Criteria.CURED_ZOMBIE_VILLAGER.trigger((ServerPlayerEntity)playerEntity, this, villagerEntity);
         //    world.handleInteraction(EntityInteraction.ZOMBIE_VILLAGER_CURED, playerEntity, villagerEntity);

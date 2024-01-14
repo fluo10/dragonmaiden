@@ -133,7 +133,7 @@ public class HumanRufinaEntityRenderer extends LivingEntityRenderer<AbstractRufi
     }
 
     public Identifier getTexture(AbstractRufinaEntity rufinaEntity) {
-        return new Identifier("rufina_mc", "textures/entity/rufina/rufina.png");
+        return new Identifier("rufina_mc", "textures/entity/rufina/human_rufina.png");
     }
 
     protected void scale(AbstractRufinaEntity abstractClientPlayerEntity, MatrixStack matrixStack, float f) {

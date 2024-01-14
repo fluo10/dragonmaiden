@@ -27,6 +27,7 @@ import net.minecraft.item.*;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.server.ServerConfigHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvent;
@@ -185,13 +186,29 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
 
     public void writeCustomDataToNbt(NbtCompound nbt) {
         super.writeCustomDataToNbt(nbt);
+        if (this.getOwnerUuid() != null) {
+            nbt.putUuid("Owner", this.getOwnerUuid());
+        }
         this.writeAngerToNbt(nbt);
     }
 
     public void readCustomDataFromNbt(NbtCompound nbt) {
+        UUID uUID;
         super.readCustomDataFromNbt(nbt);
-
-
+        if (nbt.containsUuid("Owner")) {
+            uUID = nbt.getUuid("Owner");
+        } else {
+            String string = nbt.getString("Owner");
+            uUID = ServerConfigHandler.getPlayerUuidByName(this.getServer(), string);
+        }
+        if (uUID != null) {
+            try {
+                this.setOwnerUuid(uUID);
+                this.setTamed(true);
+            } catch (Throwable throwable) {
+                this.setTamed(false);
+            }
+        }
         this.readAngerFromNbt(this.getWorld(), nbt);
     }
 
@@ -235,9 +252,7 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
     public void tick() {
         
         if (!this.getWorld().isClient && this.isAlive() && this.isConverting()) {
-            int i = this.getConversionRate();
-            Rufina.LOGGER.info("Converting : {}", i);
-            this.conversionTimer -= i;
+            this.conversionTimer -= 1;
             if (this.conversionTimer <= 0) {
                 this.finishConversion((ServerWorld)this.getWorld());
             }
@@ -634,26 +649,7 @@ private boolean isCharging() {
         this.getDataTracker().set(CONVERTING, true);
         this.getWorld().sendEntityStatus(this, EntityStatuses.PLAY_CURE_ZOMBIE_VILLAGER_SOUND);
     }
-    private int getConversionRate() {
-        int i = 1;
-        if (this.random.nextFloat() < 0.01f) {
-            int j = 0;
-            BlockPos.Mutable mutable = new BlockPos.Mutable();
-            for (int k = (int)this.getX() - 4; k < (int)this.getX() + 4 && j < 14; ++k) {
-                for (int l = (int)this.getY() - 4; l < (int)this.getY() + 4 && j < 14; ++l) {
-                    for (int m = (int)this.getZ() - 4; m < (int)this.getZ() + 4 && j < 14; ++m) {
-                        BlockState blockState = this.getWorld().getBlockState(mutable.set(k, l, m));
-                        if (!blockState.isOf(Blocks.IRON_BARS) && !(blockState.getBlock() instanceof BedBlock)) continue;
-                        if (this.random.nextFloat() < 0.3f) {
-                            ++i;
-                        }
-                        ++j;
-                    }
-                }
-            }
-        }
-        return i;
-    }
+    
     protected abstract void finishConversion(ServerWorld world);
 }
 

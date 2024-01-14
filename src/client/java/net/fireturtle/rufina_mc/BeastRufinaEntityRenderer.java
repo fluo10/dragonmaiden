@@ -8,9 +8,9 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 
 public class BeastRufinaEntityRenderer extends MobEntityRenderer<BeastRufinaEntity, BeastRufinaEntityModel> {
-    private static final Identifier WILD_TEXTURE = new Identifier("textures/entity/rufina/beast_rufina.png");
-    private static final Identifier TAMED_TEXTURE = new Identifier("textures/entity/rufina/beast_rufina_tamed.png");
-    private static final Identifier ANGRY_TEXTURE = new Identifier("textures/entity/rufina/beast_rufina_angry.png");
+    private static final Identifier WILD_TEXTURE = new Identifier("rufina_mc", "textures/entity/rufina/beast_rufina.png");
+    private static final Identifier TAMED_TEXTURE = new Identifier("rufina_mc", "textures/entity/rufina/beast_rufina.png");
+    private static final Identifier ANGRY_TEXTURE = new Identifier("rufina_mc", "textures/entity/rufina/beast_rufina.png");
     //return new Identifier("rufina_mc", "textures/entity/rufina/rufina.png");
 
     public BeastRufinaEntityRenderer(EntityRendererFactory.Context context) {
