@@ -12,23 +12,12 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.CrossbowItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.scoreboard.ScoreboardDisplaySlot;
-import net.minecraft.scoreboard.ScoreboardObjective;
-import net.minecraft.scoreboard.ScoreboardPlayerScore;
-import net.minecraft.screen.ScreenTexts;
-import net.minecraft.text.Text;
+
 import net.minecraft.util.*;
 
-import com.google.common.collect.ImmutableMap;
-import java.util.Map;
-import java.util.Objects;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.mob.AbstractPiglinEntity;
-import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;

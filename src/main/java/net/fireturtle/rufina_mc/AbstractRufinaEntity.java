@@ -68,19 +68,15 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldView;
 
 
-public abstract class AbstractRufinaEntity extends PassiveEntity implements Tameable, Angerable, CrossbowUser, InventoryOwner{
+public abstract class AbstractRufinaEntity extends PassiveEntity implements Tameable, Angerable, InventoryOwner{
     protected static final TrackedData<Byte> RUFINA_FLAGS = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BYTE);
     protected static final int TAMED_FLAG = 2;
     protected static final int SADDLED_FLAG = 4;
     protected static final TrackedData<Optional<UUID>> OWNER_UUID = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
-    private static final TrackedData<Boolean> CHARGING = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     private static final TrackedData<Integer> ANGER_TIME;
     protected static final TrackedData<Boolean> CONVERTING = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     private static final TrackedData<Integer> LOYAL_TIME = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.INTEGER);
-    private static final TrackedData<Boolean> ALLOWED_TRANSFORMATION_FLAG = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-    protected static final TrackedData<Boolean> SADDLE_FLAG = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-    
-
+    private static final TrackedData<Boolean> ALLOWED_TRANSFORMATION_FLAG = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);    
     
     public static final Predicate<LivingEntity> FOLLOW_TAMED_PREDICATE;
     private static final float WILD_MAX_HEALTH = 8.0F;
@@ -195,7 +191,6 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
         this.dataTracker.startTracking(RUFINA_FLAGS, (byte) 0);
         this.dataTracker.startTracking(OWNER_UUID, Optional.empty());
 
-        this.dataTracker.startTracking(CHARGING, false);
         this.dataTracker.startTracking(ANGER_TIME, 0);
         this.dataTracker.startTracking(PLAYER_MODEL_PARTS, (byte)127);
         this.dataTracker.startTracking(CONVERTING, false);
@@ -220,7 +215,7 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
         if (nbt.contains("RufinaFlags")) {
             this.dataTracker.set(RUFINA_FLAGS, nbt.getByte("RufinaFlags"));
         }
-        
+
         if (nbt.containsUuid("Owner")) {
             uUID = nbt.getUuid("Owner");
         } else {
@@ -295,34 +290,7 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
                     this.getWorld().sendEntityStatus(this, (byte)56);
                     this.resetShake();
                 }
-            } else if ((this.furWet || this.canShakeWaterOff) && this.canShakeWaterOff) {
-                if (this.shakeProgress == 0.0F) {
-                    this.playSound(SoundEvents.ENTITY_WOLF_SHAKE, this.getSoundVolume(), (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
-                    this.emitGameEvent(GameEvent.ENTITY_ACTION);
-                }
-
-                this.lastShakeProgress = this.shakeProgress;
-                this.shakeProgress += 0.05F;
-                if (this.lastShakeProgress >= 2.0F) {
-                    this.furWet = false;
-                    this.canShakeWaterOff = false;
-                    this.lastShakeProgress = 0.0F;
-                    this.shakeProgress = 0.0F;
-                }
-
-                if (this.shakeProgress > 0.4F) {
-                    float f = (float)this.getY();
-                    int i = (int)(MathHelper.sin((this.shakeProgress - 0.4F) * 3.1415927F) * 7.0F);
-                    Vec3d vec3d = this.getVelocity();
-
-                    for(int j = 0; j < i; ++j) {
-                        float g = (this.random.nextFloat() * 2.0F - 1.0F) * this.getWidth() * 0.5F;
-                        float h = (this.random.nextFloat() * 2.0F - 1.0F) * this.getWidth() * 0.5F;
-                        this.getWorld().addParticle(ParticleTypes.SPLASH, this.getX() + (double)g, (double)(f + 0.8F), this.getZ() + (double)h, vec3d.x, vec3d.y, vec3d.z);
-                    }
-                }
-            }
-
+            } 
         }
     }
 
@@ -558,28 +526,7 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
         };
         ANGER_TIME_RANGE = TimeHelper.betweenSeconds(20, 39);
     }
-private boolean isCharging() {
-        return this.dataTracker.get(CHARGING);
-}
-    @Override
-    public void setCharging(boolean charging) {
-        this.dataTracker.set(CHARGING, charging);
-    }
 
-    @Override
-    public void shoot(LivingEntity target, ItemStack crossbow, ProjectileEntity projectile, float multiShotSpray) {
-        this.shoot(this, target, projectile, multiShotSpray, 1.6f);
-    }
-
-    @Override
-    public void postShoot() {
-
-    }
-
-    @Override
-    public void shootAt(LivingEntity target, float pullProgress) {
-        this.shoot(this, 1.6f);
-    }
 
     public boolean canUseRangedWeapon(RangedWeaponItem weapon) {
         return weapon == Items.CROSSBOW;

@@ -1,9 +1,16 @@
 package net.fireturtle.rufina_mc;
 
+import net.minecraft.entity.CrossbowUser;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.ai.RangedAttackMob;
+import net.minecraft.entity.data.DataTracker;
+import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.world.ServerWorld;
@@ -11,8 +18,12 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 
-public class HumanRufinaEntity extends AbstractRufinaEntity {
-
+public class HumanRufinaEntity extends AbstractRufinaEntity implements CrossbowUser {
+    private static final TrackedData<Boolean> CHARGING = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    protected void initDataTracker() {
+        super.initDataTracker();
+        this.dataTracker.startTracking(CHARGING, false);
+    }
     protected HumanRufinaEntity(EntityType<? extends PassiveEntity> entityType, World world) {
         super(entityType, world);
         //TODO Auto-generated constructor stub
@@ -51,6 +62,29 @@ public class HumanRufinaEntity extends AbstractRufinaEntity {
         //    world.syncWorldEvent(null, WorldEvents.ZOMBIE_VILLAGER_CURED, this.getBlockPos(), 0);
         //}
     }
+    @Override
+    public void setCharging(boolean charging) {
+        this.dataTracker.set(CHARGING, charging);
+    }
 
+    @Override
+    public void shoot(LivingEntity target, ItemStack crossbow, ProjectileEntity projectile, float multiShotSpray) {
+        this.shoot(this, target, projectile, multiShotSpray, 1.6f);
+    }
+
+    @Override
+    public void postShoot() {
+
+    }
+
+    public void shootAt(LivingEntity target, float pullProgress) {
+        this.shoot(this, 1.6f);
+    }
+    private boolean isCharging() {
+        return this.dataTracker.get(CHARGING);
+    }
+   public void attack(LivingEntity target, float pullProgress) {
+        this.shootAt(target, pullProgress);
+    }
 
 }

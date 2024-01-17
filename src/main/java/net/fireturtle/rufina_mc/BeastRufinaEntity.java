@@ -75,12 +75,12 @@ public class BeastRufinaEntity extends AbstractRufinaEntity implements Saddleabl
     @Override
     public void saddle(@Nullable SoundCategory sound) {
         this.items.setStack(0, new ItemStack(Items.SADDLE));
-        this.dataTracker.set(SADDLE_FLAG, true);
+        this.setRufinaFlag(SADDLED_FLAG, true);
     }
 
     @Override
     public boolean isSaddled() {
-        return this.dataTracker.get(SADDLE_FLAG);
+        return this.getRufinaFlag(SADDLED_FLAG);
     }
 
 
