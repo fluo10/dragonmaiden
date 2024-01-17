@@ -1,4 +1,4 @@
-package net.fireturtle.rufina_mc;
+package net.fireturtle.dragonmaiden;
 
 import net.minecraft.entity.CrossbowUser;
 import net.minecraft.entity.EntityType;

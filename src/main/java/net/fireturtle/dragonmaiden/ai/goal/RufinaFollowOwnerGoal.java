@@ -1,6 +1,6 @@
-package net.fireturtle.rufina_mc.ai.goal;
+package net.fireturtle.dragonmaiden.ai.goal;
 
-import net.fireturtle.rufina_mc.AbstractRufinaEntity;
+import net.fireturtle.dragonmaiden.AbstractRufinaEntity;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.LeavesBlock;
 import net.minecraft.entity.LivingEntity;

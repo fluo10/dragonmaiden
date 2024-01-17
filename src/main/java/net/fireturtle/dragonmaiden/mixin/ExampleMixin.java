@@ -1,4 +1,4 @@
-package net.fireturtle.rufina_mc.mixin;
+package net.fireturtle.dragonmaiden.mixin;
 
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;

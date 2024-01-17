@@ -1,4 +1,4 @@
-package net.fireturtle.rufina_mc;
+package net.fireturtle.dragonmaiden;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;

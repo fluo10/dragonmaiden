@@ -1,6 +1,6 @@
-package net.fireturtle.rufina_mc;
+package net.fireturtle.dragonmaiden;
 
-import net.fireturtle.rufina_mc.ai.goal.*;
+import net.fireturtle.dragonmaiden.ai.goal.*;
 import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.block.BedBlock;
 import net.minecraft.block.BlockState;

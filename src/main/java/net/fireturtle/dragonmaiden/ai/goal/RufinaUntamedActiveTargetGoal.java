@@ -1,8 +1,8 @@
-package net.fireturtle.rufina_mc.ai.goal;
+package net.fireturtle.dragonmaiden.ai.goal;
 
 import java.util.function.Predicate;
 
-import net.fireturtle.rufina_mc.AbstractRufinaEntity;
+import net.fireturtle.dragonmaiden.AbstractRufinaEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.ActiveTargetGoal;
 import net.minecraft.entity.passive.TameableEntity;

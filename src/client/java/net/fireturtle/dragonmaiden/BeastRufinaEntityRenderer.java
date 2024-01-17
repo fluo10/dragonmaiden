@@ -1,5 +1,6 @@
-package net.fireturtle.rufina_mc;
+package net.fireturtle.dragonmaiden;
 
+import net.fireturtle.dragonmaiden.BeastRufinaEntity;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.MobEntityRenderer;

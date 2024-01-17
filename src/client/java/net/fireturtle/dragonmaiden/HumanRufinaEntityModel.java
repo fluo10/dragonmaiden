@@ -1,4 +1,4 @@
-package net.fireturtle.rufina_mc;
+package net.fireturtle.dragonmaiden;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -10,6 +10,7 @@ import net.minecraft.client.util.math.MatrixStack;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fireturtle.dragonmaiden.AbstractRufinaEntity;
 import net.minecraft.client.model.Dilation;
 import net.minecraft.client.model.ModelData;
 import net.minecraft.client.model.ModelPart;

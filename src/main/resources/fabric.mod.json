@@ -1,8 +1,8 @@
 {
 	"schemaVersion": 1,
-	"id": "rufina_mc",
+	"id": "dragonmaiden",
 	"version": "${version}",
-	"name": "rufina_mc",
+	"name": "dragonmaiden",
 	"description": "This is an example description! Tell everyone what your mod is about!",
 	"authors": [
 		"Me!"
@@ -16,10 +16,10 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"net.fireturtle.rufina_mc.Rufina"
+			"net.fireturtle.dragonmaiden.Rufina"
 		],
 		"client": [
-			"net.fireturtle.rufina_mc.RufinaClient"
+			"net.fireturtle.dragonmaiden.RufinaClient"
 		]
 	},
 	"mixins": [],

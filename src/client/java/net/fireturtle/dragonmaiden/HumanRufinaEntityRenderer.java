@@ -1,4 +1,4 @@
-package net.fireturtle.rufina_mc;
+package net.fireturtle.dragonmaiden;
 
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -18,6 +18,7 @@ import net.minecraft.util.*;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fireturtle.dragonmaiden.AbstractRufinaEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;

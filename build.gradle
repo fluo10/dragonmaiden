@@ -22,7 +22,7 @@ loom {
     splitEnvironmentSourceSets()
 
 	mods {
-		"rufina_mc" {
+		"dragonmaiden" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}
