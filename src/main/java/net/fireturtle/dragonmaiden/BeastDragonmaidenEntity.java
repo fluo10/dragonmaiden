@@ -1,52 +1,56 @@
 package net.fireturtle.dragonmaiden;
 
-import net.minecraft.entity.CrossbowUser;
+import org.jetbrains.annotations.Nullable;
+
+import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.Saddleable;
 import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.ai.RangedAttackMob;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 
-public class HumanRufinaEntity extends AbstractRufinaEntity implements CrossbowUser {
-    private static final TrackedData<Boolean> CHARGING = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-    protected void initDataTracker() {
-        super.initDataTracker();
-        this.dataTracker.startTracking(CHARGING, false);
-    }
-    protected HumanRufinaEntity(EntityType<? extends PassiveEntity> entityType, World world) {
+public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implements Saddleable{
+
+    protected BeastDragonmaidenEntity(EntityType<? extends PassiveEntity> entityType, World world) {
         super(entityType, world);
         //TODO Auto-generated constructor stub
     }
+
     @Override
     public ActionResult interactMob(PlayerEntity player, Hand hand) {
         ItemStack itemStack= player.getStackInHand(hand);
-        Rufina.LOGGER.info("ShouldCancelInteraction: {}", player.shouldCancelInteraction());
-        if ((player.getUuid() == this.getOwnerUuid())) {
-            if (!this.getWorld().isClient) {
-                this.setConverting(player.getUuid(), 60);
+        boolean isOwner = player.getUuid() == this.getOwnerUuid();
+        if (isOwner && !this.isSaddled() && itemStack.isOf(Items.SADDLE)){
+            if (player.getAbilities().creativeMode) {
+                itemStack.decrement(1);
             }
-            return ActionResult.SUCCESS;
+            this.saddle(null);
         }
+        if (isOwner && this.isSaddled() && !player.shouldCancelInteraction()){
+            if (!this.getWorld().isClient) {
+                player.startRiding(this);
+            }
+            return ActionResult.success(this.getWorld().isClient);
+        }
+     
 
         return super.interactMob(player, hand);
     }
-    
+
+    @Override
     protected void finishConversion(ServerWorld world) {
         PlayerEntity playerEntity;
-        BeastRufinaEntity rufinaEntity = this.convertTo(Rufina.BEAST_RUFINA, false);
+        HumanDragonmaidenEntity rufinaEntity = this.convertTo(Dragonmaiden.HUMAN_RUFINA, false);
 
-       
+
         rufinaEntity.initialize(world, world.getLocalDifficulty(rufinaEntity.getBlockPos()), SpawnReason.CONVERSION, null, null);
         rufinaEntity.setOwnerUuid(this.getOwnerUuid());
         rufinaEntity.setAngerTime(this.getAngerTime());
@@ -62,29 +66,22 @@ public class HumanRufinaEntity extends AbstractRufinaEntity implements CrossbowU
         //    world.syncWorldEvent(null, WorldEvents.ZOMBIE_VILLAGER_CURED, this.getBlockPos(), 0);
         //}
     }
-    @Override
-    public void setCharging(boolean charging) {
-        this.dataTracker.set(CHARGING, charging);
-    }
 
     @Override
-    public void shoot(LivingEntity target, ItemStack crossbow, ProjectileEntity projectile, float multiShotSpray) {
-        this.shoot(this, target, projectile, multiShotSpray, 1.6f);
+    public boolean canBeSaddled() {
+        return this.isAlive() && !this.isBaby() && this.isTamed();
     }
 
     @Override
-    public void postShoot() {
-
+    public void saddle(@Nullable SoundCategory sound) {
+        this.items.setStack(0, new ItemStack(Items.SADDLE));
+        this.setRufinaFlag(SADDLED_FLAG, true);
     }
 
-    public void shootAt(LivingEntity target, float pullProgress) {
-        this.shoot(this, 1.6f);
+    @Override
+    public boolean isSaddled() {
+        return this.getRufinaFlag(SADDLED_FLAG);
     }
-    private boolean isCharging() {
-        return this.dataTracker.get(CHARGING);
-    }
-   public void attack(LivingEntity target, float pullProgress) {
-        this.shootAt(target, pullProgress);
-    }
+
 
 }

@@ -16,10 +16,10 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"net.fireturtle.dragonmaiden.Rufina"
+			"net.fireturtle.dragonmaiden.Dragonmaiden"
 		],
 		"client": [
-			"net.fireturtle.dragonmaiden.RufinaClient"
+			"net.fireturtle.dragonmaiden.DragonmaidenClient"
 		]
 	},
 	"mixins": [],

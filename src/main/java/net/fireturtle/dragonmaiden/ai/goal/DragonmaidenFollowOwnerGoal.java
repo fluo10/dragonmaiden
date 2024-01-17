@@ -1,6 +1,6 @@
 package net.fireturtle.dragonmaiden.ai.goal;
 
-import net.fireturtle.dragonmaiden.AbstractRufinaEntity;
+import net.fireturtle.dragonmaiden.AbstractDragonmaidenEntity;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.LeavesBlock;
 import net.minecraft.entity.LivingEntity;
@@ -12,13 +12,13 @@ import net.minecraft.world.WorldView;
 import java.util.EnumSet;
 
 
-public class RufinaFollowOwnerGoal
+public class DragonmaidenFollowOwnerGoal
         extends Goal {
     public static final int TELEPORT_DISTANCE = 12;
     private static final int HORIZONTAL_RANGE = 2;
     private static final int HORIZONTAL_VARIATION = 3;
     private static final int VERTICAL_VARIATION = 1;
-    private final AbstractRufinaEntity rufina;
+    private final AbstractDragonmaidenEntity rufina;
     private LivingEntity owner;
     private final WorldView world;
     private final double speed;
@@ -29,7 +29,7 @@ public class RufinaFollowOwnerGoal
     private float oldWaterPathfindingPenalty;
     private final boolean leavesAllowed;
 
-    public RufinaFollowOwnerGoal(AbstractRufinaEntity tameable, double speed, float minDistance, float maxDistance, boolean leavesAllowed) {
+    public DragonmaidenFollowOwnerGoal(AbstractDragonmaidenEntity tameable, double speed, float minDistance, float maxDistance, boolean leavesAllowed) {
         this.rufina = tameable;
         this.world = tameable.getWorld();
         this.speed = speed;

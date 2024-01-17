@@ -10,7 +10,7 @@ import net.minecraft.client.util.math.MatrixStack;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fireturtle.dragonmaiden.AbstractRufinaEntity;
+import net.fireturtle.dragonmaiden.AbstractDragonmaidenEntity;
 import net.minecraft.client.model.Dilation;
 import net.minecraft.client.model.ModelData;
 import net.minecraft.client.model.ModelPart;
@@ -30,7 +30,7 @@ import net.minecraft.util.math.random.Random;
 import java.util.List;
 
 @Environment(EnvType.CLIENT)
-public class HumanRufinaEntityModel extends BipedEntityModel<AbstractRufinaEntity> {
+public class HumanDragonmaidenEntityModel extends BipedEntityModel<AbstractDragonmaidenEntity> {
     private static final String EAR = "ear";
     private static final String CLOAK = "cloak";
     private static final String LEFT_SLEEVE = "left_sleeve";
@@ -47,7 +47,7 @@ public class HumanRufinaEntityModel extends BipedEntityModel<AbstractRufinaEntit
     private final ModelPart ear;
     private final boolean thinArms;
 
-    public HumanRufinaEntityModel(ModelPart root) {
+    public HumanDragonmaidenEntityModel(ModelPart root) {
         super(root, RenderLayer::getEntityTranslucent);
         this.thinArms = true;
         this.ear = root.getChild("ear");
@@ -97,7 +97,7 @@ public class HumanRufinaEntityModel extends BipedEntityModel<AbstractRufinaEntit
         this.cloak.render(matrices, vertices, light, overlay);
     }
 
-    public void setAngles(AbstractRufinaEntity livingEntity, float f, float g, float h, float i, float j) {
+    public void setAngles(AbstractDragonmaidenEntity livingEntity, float f, float g, float h, float i, float j) {
         super.setAngles(livingEntity, f, g, h, i, j);
         this.leftPants.copyTransform(this.leftLeg);
         this.rightPants.copyTransform(this.rightLeg);

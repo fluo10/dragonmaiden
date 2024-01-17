@@ -1,19 +1,19 @@
 package net.fireturtle.dragonmaiden.ai.goal;
 
-import net.fireturtle.dragonmaiden.AbstractRufinaEntity;
+import net.fireturtle.dragonmaiden.AbstractDragonmaidenEntity;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.EnumSet;
 
-public class RufinaWanderToTargetGoal
+public class DragonmaidenWanderToTargetGoal
         extends Goal {
-    final AbstractRufinaEntity trader;
+    final AbstractDragonmaidenEntity trader;
     final double proximityDistance;
     final double speed;
 
-    public RufinaWanderToTargetGoal(AbstractRufinaEntity trader, double proximityDistance, double speed) {
+    public DragonmaidenWanderToTargetGoal(AbstractDragonmaidenEntity trader, double proximityDistance, double speed) {
         this.trader = trader;
         this.proximityDistance = proximityDistance;
         this.speed = speed;

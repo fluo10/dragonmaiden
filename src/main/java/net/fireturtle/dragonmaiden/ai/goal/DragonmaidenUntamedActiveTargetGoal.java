@@ -2,7 +2,7 @@ package net.fireturtle.dragonmaiden.ai.goal;
 
 import java.util.function.Predicate;
 
-import net.fireturtle.dragonmaiden.AbstractRufinaEntity;
+import net.fireturtle.dragonmaiden.AbstractDragonmaidenEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.ActiveTargetGoal;
 import net.minecraft.entity.passive.TameableEntity;
@@ -13,11 +13,11 @@ import org.jetbrains.annotations.Nullable;
  * In addition, the continue condition for maintaining the target uses the
  * target predicate than that of the standard track target goal.
  */
-public class RufinaUntamedActiveTargetGoal<T extends LivingEntity>
+public class DragonmaidenUntamedActiveTargetGoal<T extends LivingEntity>
         extends ActiveTargetGoal<T> {
-    private final AbstractRufinaEntity tameable;
+    private final AbstractDragonmaidenEntity tameable;
 
-    public RufinaUntamedActiveTargetGoal(AbstractRufinaEntity tameable, Class<T> targetClass, boolean checkVisibility, @Nullable Predicate<LivingEntity> targetPredicate) {
+    public DragonmaidenUntamedActiveTargetGoal(AbstractDragonmaidenEntity tameable, Class<T> targetClass, boolean checkVisibility, @Nullable Predicate<LivingEntity> targetPredicate) {
         super(tameable, targetClass, 10, checkVisibility, false, targetPredicate);
         this.tameable = tameable;
     }

@@ -12,8 +12,8 @@ import net.minecraft.client.render.entity.model.EntityModelPartNames;
 import net.minecraft.client.render.entity.model.TintableAnimalModel;
 import net.minecraft.util.math.MathHelper;
 
-public class BeastRufinaEntityModel
-extends TintableAnimalModel<BeastRufinaEntity> {
+public class BeastDragonmaidenEntityModel
+extends TintableAnimalModel<BeastDragonmaidenEntity> {
     /**
      * The key of the real head model part, whose value is {@value}.
      */
@@ -44,7 +44,7 @@ extends TintableAnimalModel<BeastRufinaEntity> {
     private final ModelPart neck;
     private static final int field_32580 = 8;
 
-    public BeastRufinaEntityModel(ModelPart root) {
+    public BeastDragonmaidenEntityModel(ModelPart root) {
         this.head = root.getChild(EntityModelPartNames.HEAD);
         this.realHead = this.head.getChild(REAL_HEAD);
         this.torso = root.getChild(EntityModelPartNames.BODY);
@@ -86,7 +86,7 @@ extends TintableAnimalModel<BeastRufinaEntity> {
     }
 
     @Override
-    public void animateModel(BeastRufinaEntity wolfEntity, float f, float g, float h) {
+    public void animateModel(BeastDragonmaidenEntity wolfEntity, float f, float g, float h) {
         this.tail.yaw = wolfEntity.hasAngerTime() ? 0.0f : MathHelper.cos((float)(f * 0.6662f)) * 1.4f * g;
         //if (wolfEntity.isInSittingPose()) {
         if (false) {
@@ -126,7 +126,7 @@ extends TintableAnimalModel<BeastRufinaEntity> {
     }
 
     @Override
-    public void setAngles(BeastRufinaEntity wolfEntity, float f, float g, float h, float i, float j) {
+    public void setAngles(BeastDragonmaidenEntity wolfEntity, float f, float g, float h, float i, float j) {
         this.head.pitch = j * ((float)Math.PI / 180);
         this.head.yaw = i * ((float)Math.PI / 180);
         this.tail.pitch = h;

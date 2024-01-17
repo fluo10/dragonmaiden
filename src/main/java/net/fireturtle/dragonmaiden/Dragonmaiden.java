@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class Rufina implements ModInitializer {
+public class Dragonmaiden implements ModInitializer {
 	// This logger is used to write text to the console and the log file.
 	// It is considered best practice to use your mod id as the logger's name.
 	// That way, it's clear which mod wrote info, warnings, and errors.
@@ -39,20 +39,20 @@ public class Rufina implements ModInitializer {
 	public static final Item HALBERD = new Item(new FabricItemSettings());
 	public static final String MOD_ID = "net.fireturtle.rufina_mc";
 	public static final Identifier RUFINA_UUID = new Identifier(MOD_ID, "rufina_uuid");
-	public static final EntityType<HumanRufinaEntity> HUMAN_RUFINA = Registry.register(
+	public static final EntityType<HumanDragonmaidenEntity> HUMAN_RUFINA = Registry.register(
 			Registries.ENTITY_TYPE,
 			new Identifier(MOD_ID, "human_rufina"),
-			FabricEntityTypeBuilder.create(SpawnGroup.CREATURE, HumanRufinaEntity::new).dimensions(EntityDimensions.fixed(0.75f, 0.75f)).build()
+			FabricEntityTypeBuilder.create(SpawnGroup.CREATURE, HumanDragonmaidenEntity::new).dimensions(EntityDimensions.fixed(0.75f, 0.75f)).build()
 	);
-	public static final EntityType<BeastRufinaEntity> BEAST_RUFINA = Registry.register(
+	public static final EntityType<BeastDragonmaidenEntity> BEAST_RUFINA = Registry.register(
 			Registries.ENTITY_TYPE,
 			new Identifier(MOD_ID, "beast_rufina"),
-			FabricEntityTypeBuilder.create(SpawnGroup.CREATURE, BeastRufinaEntity::new).dimensions(EntityDimensions.fixed(0.75f, 0.75f)).build()
+			FabricEntityTypeBuilder.create(SpawnGroup.CREATURE, BeastDragonmaidenEntity::new).dimensions(EntityDimensions.fixed(0.75f, 0.75f)).build()
 	);
 
 
 	@Nullable
-	public AbstractRufinaEntity rufinaEntity = null;
+	public AbstractDragonmaidenEntity rufinaEntity = null;
 	
 	@Nullable
 	public PlayerEntity playerEntity = null;
@@ -63,9 +63,9 @@ public class Rufina implements ModInitializer {
 	public static final Integer DEFAULT_SPAWN_TIMER = 60;
 	Integer spawnTimer = DEFAULT_SPAWN_TIMER;
 
-	public static List<?extends AbstractRufinaEntity> getRufinaEntities(MinecraftServer server) {
+	public static List<?extends AbstractDragonmaidenEntity> getRufinaEntities(MinecraftServer server) {
 		Iterable<ServerWorld> worlds = server.getWorlds();
-		Stream<?extends AbstractRufinaEntity> rufinaEntities = Stream.empty();
+		Stream<?extends AbstractDragonmaidenEntity> rufinaEntities = Stream.empty();
 		for (ServerWorld world2 : worlds) {
 			rufinaEntities = Stream.concat(rufinaEntities, world2.getEntitiesByType(BEAST_RUFINA, EntityPredicates.VALID_LIVING_ENTITY).stream());
 			rufinaEntities = Stream.concat(rufinaEntities, world2.getEntitiesByType(HUMAN_RUFINA, EntityPredicates.VALID_LIVING_ENTITY).stream());
@@ -75,7 +75,7 @@ public class Rufina implements ModInitializer {
 	public static boolean trySpawnUnique(MinecraftServer server) {
 		if (getRufinaEntities(server).size() == 0) {
 			ServerWorld overWorld = server.getOverworld();
-			BeastRufinaEntity beastRufinaEntity = BEAST_RUFINA.create(overWorld);
+			BeastDragonmaidenEntity beastRufinaEntity = BEAST_RUFINA.create(overWorld);
 			BlockPos pos = overWorld.getSpawnPos();
 			beastRufinaEntity.refreshPositionAndAngles(pos.getX(), pos.getY(), pos.getZ(), 0 , 0.0f);
 			overWorld.spawnEntity(beastRufinaEntity);
@@ -93,8 +93,8 @@ public class Rufina implements ModInitializer {
 		// Proceed with mild caution.
 		Registry.register(Registries.ITEM, new Identifier("rufina_mc", "halberd"), HALBERD);
 		LOGGER.info("Hello Fabric world!");
-		FabricDefaultAttributeRegistry.register(HUMAN_RUFINA, HumanRufinaEntity.createMobAttributes());
-		FabricDefaultAttributeRegistry.register(BEAST_RUFINA, BeastRufinaEntity.createMobAttributes());
+		FabricDefaultAttributeRegistry.register(HUMAN_RUFINA, HumanDragonmaidenEntity.createMobAttributes());
+		FabricDefaultAttributeRegistry.register(BEAST_RUFINA, BeastDragonmaidenEntity.createMobAttributes());
 
 
 		ServerLifecycleEvents.SERVER_STARTED.register((server) -> {

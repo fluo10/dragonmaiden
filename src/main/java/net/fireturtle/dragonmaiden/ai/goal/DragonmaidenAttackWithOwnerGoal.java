@@ -1,21 +1,22 @@
 package net.fireturtle.dragonmaiden.ai.goal;
 
-import net.fireturtle.dragonmaiden.AbstractRufinaEntity;
+
+import java.util.EnumSet;
+
+import net.fireturtle.dragonmaiden.AbstractDragonmaidenEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.TargetPredicate;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.TrackTargetGoal;
 import net.minecraft.entity.passive.TameableEntity;
 
-import java.util.EnumSet;
-
-public class RufinaTrackOwnerAttackerGoal
+public class DragonmaidenAttackWithOwnerGoal
         extends TrackTargetGoal {
-    private final AbstractRufinaEntity tameable;
-    private LivingEntity attacker;
-    private int lastAttackedTime;
+    private final AbstractDragonmaidenEntity tameable;
+    private LivingEntity attacking;
+    private int lastAttackTime;
 
-    public RufinaTrackOwnerAttackerGoal(AbstractRufinaEntity tameable) {
+    public DragonmaidenAttackWithOwnerGoal(AbstractDragonmaidenEntity tameable) {
         super(tameable, false);
         this.tameable = tameable;
         this.setControls(EnumSet.of(Goal.Control.TARGET));
@@ -30,17 +31,17 @@ public class RufinaTrackOwnerAttackerGoal
         if (livingEntity == null) {
             return false;
         }
-        this.attacker = livingEntity.getAttacker();
-        int i = livingEntity.getLastAttackedTime();
-        return i != this.lastAttackedTime && this.canTrack(this.attacker, TargetPredicate.DEFAULT) && this.tameable.canAttackWithOwner(this.attacker, livingEntity);
+        this.attacking = livingEntity.getAttacking();
+        int i = livingEntity.getLastAttackTime();
+        return i != this.lastAttackTime && this.canTrack(this.attacking, TargetPredicate.DEFAULT) && this.tameable.canAttackWithOwner(this.attacking, livingEntity);
     }
 
     @Override
     public void start() {
-        this.mob.setTarget(this.attacker);
+        this.mob.setTarget(this.attacking);
         LivingEntity livingEntity = this.tameable.getOwner();
         if (livingEntity != null) {
-            this.lastAttackedTime = livingEntity.getLastAttackedTime();
+            this.lastAttackTime = livingEntity.getLastAttackTime();
         }
         super.start();
     }
