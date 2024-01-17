@@ -69,11 +69,18 @@ import net.minecraft.world.WorldView;
 
 
 public abstract class AbstractRufinaEntity extends PassiveEntity implements Tameable, Angerable, CrossbowUser, InventoryOwner{
-    protected static final TrackedData<Byte> TAMEABLE_FLAGS = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BYTE);
+    protected static final TrackedData<Byte> RUFINA_FLAGS = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BYTE);
+    protected static final int TAMED_FLAG = 2;
+    protected static final int SADDLED_FLAG = 4;
     protected static final TrackedData<Optional<UUID>> OWNER_UUID = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
     private static final TrackedData<Boolean> CHARGING = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     private static final TrackedData<Integer> ANGER_TIME;
     protected static final TrackedData<Boolean> CONVERTING = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    private static final TrackedData<Integer> LOYAL_TIME = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    private static final TrackedData<Boolean> ALLOWED_TRANSFORMATION_FLAG = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    protected static final TrackedData<Boolean> SADDLE_FLAG = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    
+
     
     public static final Predicate<LivingEntity> FOLLOW_TAMED_PREDICATE;
     private static final float WILD_MAX_HEALTH = 8.0F;
@@ -91,7 +98,7 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
 
     @Nullable
     private UUID angryAt;
-    private final SimpleInventory inventory = new SimpleInventory(36);
+    protected final SimpleInventory items = new SimpleInventory(36);
 
     private static final int field_30629 = 5;
 
@@ -108,12 +115,26 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
         this.setPathfindingPenalty(PathNodeType.POWDER_SNOW, -1.0F);
         this.setPathfindingPenalty(PathNodeType.DANGER_POWDER_SNOW, -1.0F);
     }
+
+    protected boolean getRufinaFlag(int bitmask) {
+        return (this.dataTracker.get(RUFINA_FLAGS) & bitmask) != 0;
+    }
+
+    protected void setRufinaFlag(int bitmask, boolean flag) {
+        byte b = this.dataTracker.get(RUFINA_FLAGS);
+        if (flag) {
+            this.dataTracker.set(RUFINA_FLAGS, (byte)(b | bitmask));
+        } else {
+            this.dataTracker.set(RUFINA_FLAGS, (byte)(b & ~bitmask));
+        }
+    }
+
     public EntityView method_48926() {
         return super.getWorld();
     }
 
     public boolean isTamed() {
-        return ((Byte)this.dataTracker.get(TAMEABLE_FLAGS) & 4) != 0;
+        return this.getRufinaFlag(TAMED_FLAG);
     }
 
     protected void onTamedChanged() {
@@ -171,7 +192,7 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
 
     protected void initDataTracker() {
         super.initDataTracker();
-        this.dataTracker.startTracking(TAMEABLE_FLAGS, (byte) 0);
+        this.dataTracker.startTracking(RUFINA_FLAGS, (byte) 0);
         this.dataTracker.startTracking(OWNER_UUID, Optional.empty());
 
         this.dataTracker.startTracking(CHARGING, false);
@@ -189,18 +210,24 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
         if (this.getOwnerUuid() != null) {
             nbt.putUuid("Owner", this.getOwnerUuid());
         }
+        nbt.putByte("RufinaFlags", this.dataTracker.get(RUFINA_FLAGS));
         this.writeAngerToNbt(nbt);
     }
 
     public void readCustomDataFromNbt(NbtCompound nbt) {
         UUID uUID;
         super.readCustomDataFromNbt(nbt);
+        if (nbt.contains("RufinaFlags")) {
+            this.dataTracker.set(RUFINA_FLAGS, nbt.getByte("RufinaFlags"));
+        }
+        
         if (nbt.containsUuid("Owner")) {
             uUID = nbt.getUuid("Owner");
         } else {
             String string = nbt.getString("Owner");
             uUID = ServerConfigHandler.getPlayerUuidByName(this.getServer(), string);
         }
+
         if (uUID != null) {
             try {
                 this.setOwnerUuid(uUID);
@@ -209,6 +236,7 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
                 this.setTamed(false);
             }
         }
+        
         this.readAngerFromNbt(this.getWorld(), nbt);
     }
 
@@ -363,28 +391,18 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
     }
 
     public void setTamed(boolean tamed) {
-            byte b = (Byte)this.dataTracker.get(TAMEABLE_FLAGS);
-            if (tamed) {
-                this.dataTracker.set(TAMEABLE_FLAGS, (byte)(b | 4));
-            } else {
-                this.dataTracker.set(TAMEABLE_FLAGS, (byte)(b & -5));
-            }
-
-            this.onTamedChanged();
-
-        if (tamed) {
-            this.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(20.0);
-            this.setHealth(20.0F);
-        } else {
-            this.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(8.0);
-        }
-
-        this.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_DAMAGE).setBaseValue(4.0);
+        this.setRufinaFlag(TAMED_FLAG, tamed);
     }
 
     public ActionResult interactMob(PlayerEntity player, Hand hand) {
         ItemStack itemStack = player.getStackInHand(hand);
         Item item = itemStack.getItem();
+        if (this.isOwner(player) && player.shouldCancelInteraction()) {
+            if (!this.getWorld().isClient) {
+                this.setConverting(player.getUuid(), 60);
+            }
+            return ActionResult.SUCCESS;
+        }
         if (this.getWorld().isClient) {
             boolean bl = this.isOwner(player) || this.isTamed() || itemStack.isOf(Items.GOLDEN_APPLE) && !this.isTamed() && !this.hasAngerTime();
             return bl ? ActionResult.CONSUME : ActionResult.PASS;
@@ -569,7 +587,7 @@ private boolean isCharging() {
 
     @Override
     public SimpleInventory getInventory() {
-        return this.inventory;
+        return this.items;
     }
 
     class WolfEscapeDangerGoal extends EscapeDangerGoal {
@@ -651,6 +669,7 @@ private boolean isCharging() {
     }
     
     protected abstract void finishConversion(ServerWorld world);
+
 }
 
 
