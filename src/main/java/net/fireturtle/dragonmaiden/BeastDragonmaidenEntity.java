@@ -1,4 +1,4 @@
-package net.fireturtle.rufina_mc;
+package net.fireturtle.dragonmaiden;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -17,9 +17,9 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 
-public class BeastRufinaEntity extends AbstractRufinaEntity implements Saddleable{
+public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implements Saddleable{
 
-    protected BeastRufinaEntity(EntityType<? extends PassiveEntity> entityType, World world) {
+    protected BeastDragonmaidenEntity(EntityType<? extends PassiveEntity> entityType, World world) {
         super(entityType, world);
         //TODO Auto-generated constructor stub
     }
@@ -48,7 +48,7 @@ public class BeastRufinaEntity extends AbstractRufinaEntity implements Saddleabl
     @Override
     protected void finishConversion(ServerWorld world) {
         PlayerEntity playerEntity;
-        HumanRufinaEntity rufinaEntity = this.convertTo(Rufina.HUMAN_RUFINA, false);
+        HumanDragonmaidenEntity rufinaEntity = this.convertTo(Dragonmaiden.HUMAN_DRAGONMAIDEN, false);
 
 
         rufinaEntity.initialize(world, world.getLocalDifficulty(rufinaEntity.getBlockPos()), SpawnReason.CONVERSION, null, null);
@@ -75,12 +75,12 @@ public class BeastRufinaEntity extends AbstractRufinaEntity implements Saddleabl
     @Override
     public void saddle(@Nullable SoundCategory sound) {
         this.items.setStack(0, new ItemStack(Items.SADDLE));
-        this.setRufinaFlag(SADDLED_FLAG, true);
+        this.setDragonmaidenFlag(SADDLED_FLAG, true);
     }
 
     @Override
     public boolean isSaddled() {
-        return this.getRufinaFlag(SADDLED_FLAG);
+        return this.getDragonmaidenFlag(SADDLED_FLAG);
     }
 
 

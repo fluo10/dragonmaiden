@@ -1,6 +1,6 @@
-package net.fireturtle.rufina_mc;
+package net.fireturtle.dragonmaiden;
 
-import net.fireturtle.rufina_mc.ai.goal.*;
+import net.fireturtle.dragonmaiden.ai.goal.*;
 import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.block.BedBlock;
 import net.minecraft.block.BlockState;
@@ -68,15 +68,15 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldView;
 
 
-public abstract class AbstractRufinaEntity extends PassiveEntity implements Tameable, Angerable, InventoryOwner{
-    protected static final TrackedData<Byte> RUFINA_FLAGS = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BYTE);
+public abstract class AbstractDragonmaidenEntity extends PassiveEntity implements Tameable, Angerable, InventoryOwner{
+    protected static final TrackedData<Byte> DRAGONMAIDEN_FLAGS = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BYTE);
     protected static final int TAMED_FLAG = 2;
     protected static final int SADDLED_FLAG = 4;
-    protected static final TrackedData<Optional<UUID>> OWNER_UUID = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
+    protected static final TrackedData<Optional<UUID>> OWNER_UUID = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
     private static final TrackedData<Integer> ANGER_TIME;
-    protected static final TrackedData<Boolean> CONVERTING = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-    private static final TrackedData<Integer> LOYAL_TIME = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.INTEGER);
-    private static final TrackedData<Boolean> ALLOWED_TRANSFORMATION_FLAG = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);    
+    protected static final TrackedData<Boolean> CONVERTING = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    private static final TrackedData<Integer> LOYAL_TIME = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    private static final TrackedData<Boolean> ALLOWED_TRANSFORMATION_FLAG = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);    
     
     public static final Predicate<LivingEntity> FOLLOW_TAMED_PREDICATE;
     private static final float WILD_MAX_HEALTH = 8.0F;
@@ -102,9 +102,9 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
     private BlockPos wanderTarget;
     private int despawnDelay;
 
-    protected static final TrackedData<Byte> PLAYER_MODEL_PARTS = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BYTE);
+    protected static final TrackedData<Byte> PLAYER_MODEL_PARTS = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BYTE);
 
-    protected AbstractRufinaEntity(EntityType<?extends PassiveEntity> entityType, World world) {
+    protected AbstractDragonmaidenEntity(EntityType<?extends PassiveEntity> entityType, World world) {
         super(entityType, world);
         this.onTamedChanged();
         this.setTamed(false);
@@ -112,16 +112,16 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
         this.setPathfindingPenalty(PathNodeType.DANGER_POWDER_SNOW, -1.0F);
     }
 
-    protected boolean getRufinaFlag(int bitmask) {
-        return (this.dataTracker.get(RUFINA_FLAGS) & bitmask) != 0;
+    protected boolean getDragonmaidenFlag(int bitmask) {
+        return (this.dataTracker.get(DRAGONMAIDEN_FLAGS) & bitmask) != 0;
     }
 
-    protected void setRufinaFlag(int bitmask, boolean flag) {
-        byte b = this.dataTracker.get(RUFINA_FLAGS);
+    protected void setDragonmaidenFlag(int bitmask, boolean flag) {
+        byte b = this.dataTracker.get(DRAGONMAIDEN_FLAGS);
         if (flag) {
-            this.dataTracker.set(RUFINA_FLAGS, (byte)(b | bitmask));
+            this.dataTracker.set(DRAGONMAIDEN_FLAGS, (byte)(b | bitmask));
         } else {
-            this.dataTracker.set(RUFINA_FLAGS, (byte)(b & ~bitmask));
+            this.dataTracker.set(DRAGONMAIDEN_FLAGS, (byte)(b & ~bitmask));
         }
     }
 
@@ -130,7 +130,7 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
     }
 
     public boolean isTamed() {
-        return this.getRufinaFlag(TAMED_FLAG);
+        return this.getDragonmaidenFlag(TAMED_FLAG);
     }
 
     protected void onTamedChanged() {
@@ -158,25 +158,24 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
     }
 
     @Nullable
-    public AbstractRufinaEntity createChild(ServerWorld serverWorld, PassiveEntity passiveEntity) {
+    public AbstractDragonmaidenEntity createChild(ServerWorld serverWorld, PassiveEntity passiveEntity) {
         return null;
     }
     protected void initGoals() {
         this.goalSelector.add(1, new SwimGoal(this));
-        this.goalSelector.add(1, new AbstractRufinaEntity.WolfEscapeDangerGoal(1.5));
+        this.goalSelector.add(1, new AbstractDragonmaidenEntity.WolfEscapeDangerGoal(1.5));
         this.goalSelector.add(4, new PounceAtTargetGoal(this, 0.4F));
         this.goalSelector.add(5, new MeleeAttackGoal(this, 1.0, true));
-        this.goalSelector.add(6, new RufinaFollowOwnerGoal(this, 1.0, 10.0F, 2.0F, false));
+        this.goalSelector.add(6, new DragonmaidenFollowOwnerGoal(this, 1.0, 10.0F, 2.0F, false));
         this.goalSelector.add(8, new WanderAroundFarGoal(this, 1.0));
         this.goalSelector.add(10, new LookAtEntityGoal(this, PlayerEntity.class, 8.0F));
         this.goalSelector.add(10, new LookAroundGoal(this));
-        this.goalSelector.add(2, new RufinaWanderToTargetGoal(this, 2.0, 0.35));
-        this.targetSelector.add(1, new RufinaTrackOwnerAttackerGoal(this));
-        this.targetSelector.add(2, new RufinaAttackWithOwnerGoal(this));
+        this.targetSelector.add(1, new DragonmaidenTrackOwnerAttackerGoal(this));
+        this.targetSelector.add(2, new DragonmaidenAttackWithOwnerGoal(this));
         this.targetSelector.add(3, (new RevengeGoal(this, new Class[0])).setGroupRevenge(new Class[0]));
         this.targetSelector.add(4, new ActiveTargetGoal<PlayerEntity>(this, PlayerEntity.class, 10, true, false, this::shouldAngerAt));
-        this.targetSelector.add(5, new RufinaUntamedActiveTargetGoal<AnimalEntity>(this, AnimalEntity.class, false, FOLLOW_TAMED_PREDICATE));
-        this.targetSelector.add(6, new RufinaUntamedActiveTargetGoal<TurtleEntity>(this, TurtleEntity.class, false, TurtleEntity.BABY_TURTLE_ON_LAND_FILTER));
+        this.targetSelector.add(5, new DragonmaidenUntamedActiveTargetGoal<AnimalEntity>(this, AnimalEntity.class, false, FOLLOW_TAMED_PREDICATE));
+        this.targetSelector.add(6, new DragonmaidenUntamedActiveTargetGoal<TurtleEntity>(this, TurtleEntity.class, false, TurtleEntity.BABY_TURTLE_ON_LAND_FILTER));
         this.targetSelector.add(7, new ActiveTargetGoal(this, AbstractSkeletonEntity.class, false));
         this.targetSelector.add(8, new UniversalAngerGoal(this, true));
 
@@ -188,7 +187,7 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
 
     protected void initDataTracker() {
         super.initDataTracker();
-        this.dataTracker.startTracking(RUFINA_FLAGS, (byte) 0);
+        this.dataTracker.startTracking(DRAGONMAIDEN_FLAGS, (byte) 0);
         this.dataTracker.startTracking(OWNER_UUID, Optional.empty());
 
         this.dataTracker.startTracking(ANGER_TIME, 0);
@@ -205,15 +204,15 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
         if (this.getOwnerUuid() != null) {
             nbt.putUuid("Owner", this.getOwnerUuid());
         }
-        nbt.putByte("RufinaFlags", this.dataTracker.get(RUFINA_FLAGS));
+        nbt.putByte("DragonmaidenFlags", this.dataTracker.get(DRAGONMAIDEN_FLAGS));
         this.writeAngerToNbt(nbt);
     }
 
     public void readCustomDataFromNbt(NbtCompound nbt) {
         UUID uUID;
         super.readCustomDataFromNbt(nbt);
-        if (nbt.contains("RufinaFlags")) {
-            this.dataTracker.set(RUFINA_FLAGS, nbt.getByte("RufinaFlags"));
+        if (nbt.contains("DragonmaidenFlags")) {
+            this.dataTracker.set(DRAGONMAIDEN_FLAGS, nbt.getByte("DragonmaidenFlags"));
         }
 
         if (nbt.containsUuid("Owner")) {
@@ -359,7 +358,7 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
     }
 
     public void setTamed(boolean tamed) {
-        this.setRufinaFlag(TAMED_FLAG, tamed);
+        this.setDragonmaidenFlag(TAMED_FLAG, tamed);
     }
 
     public ActionResult interactMob(PlayerEntity player, Hand hand) {
@@ -514,12 +513,12 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
         return new Vector3f(0.0F, dimensions.height - 0.03125F * scaleFactor, -0.0625F * scaleFactor);
     }
 
-    public static boolean canSpawn(EntityType<AbstractRufinaEntity> type, WorldAccess world, SpawnReason spawnReason, BlockPos pos, Random random) {
+    public static boolean canSpawn(EntityType<AbstractDragonmaidenEntity> type, WorldAccess world, SpawnReason spawnReason, BlockPos pos, Random random) {
         return world.getBlockState(pos.down()).isIn(BlockTags.WOLVES_SPAWNABLE_ON);
     }
 
     static {
-        ANGER_TIME = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.INTEGER);
+        ANGER_TIME = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.INTEGER);
         FOLLOW_TAMED_PREDICATE = (entity) -> {
             EntityType<?> entityType = entity.getType();
             return entityType == EntityType.SHEEP || entityType == EntityType.RABBIT || entityType == EntityType.FOX;
@@ -539,7 +538,7 @@ public abstract class AbstractRufinaEntity extends PassiveEntity implements Tame
 
     class WolfEscapeDangerGoal extends EscapeDangerGoal {
         public WolfEscapeDangerGoal(double speed) {
-            super(AbstractRufinaEntity.this, speed);
+            super(AbstractDragonmaidenEntity.this, speed);
         }
 
         protected boolean isInDanger() {

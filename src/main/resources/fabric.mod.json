@@ -1,8 +1,8 @@
 {
 	"schemaVersion": 1,
-	"id": "rufina_mc",
+	"id": "dragonmaiden",
 	"version": "${version}",
-	"name": "rufina_mc",
+	"name": "dragonmaiden",
 	"description": "This is an example description! Tell everyone what your mod is about!",
 	"authors": [
 		"Me!"
@@ -16,19 +16,13 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"net.fireturtle.rufina_mc.Rufina"
+			"net.fireturtle.dragonmaiden.Dragonmaiden"
 		],
 		"client": [
-			"net.fireturtle.rufina_mc.RufinaClient"
+			"net.fireturtle.dragonmaiden.DragonmaidenClient"
 		]
 	},
-	"mixins": [
-		"rufina_mc.mixins.json",
-		{
-			"config": "rufina_mc.client.mixins.json",
-			"environment": "client"
-		}
-	],
+	"mixins": [],
 	"depends": {
 		"fabricloader": ">=0.15.0",
 		"minecraft": "~1.20.1",

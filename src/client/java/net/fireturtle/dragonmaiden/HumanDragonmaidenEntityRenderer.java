@@ -1,4 +1,4 @@
-package net.fireturtle.rufina_mc;
+package net.fireturtle.dragonmaiden;
 
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -18,15 +18,16 @@ import net.minecraft.util.*;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fireturtle.dragonmaiden.AbstractDragonmaidenEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 
 @Environment(EnvType.CLIENT)
-public class HumanRufinaEntityRenderer extends LivingEntityRenderer<AbstractRufinaEntity, HumanRufinaEntityModel> {
-    public HumanRufinaEntityRenderer(EntityRendererFactory.Context ctx) {
-        super(ctx, new HumanRufinaEntityModel(ctx.getPart(EntityModelLayers.PLAYER_SLIM)), 0.5F);
+public class HumanDragonmaidenEntityRenderer extends LivingEntityRenderer<AbstractDragonmaidenEntity, HumanDragonmaidenEntityModel> {
+    public HumanDragonmaidenEntityRenderer(EntityRendererFactory.Context ctx) {
+        super(ctx, new HumanDragonmaidenEntityModel(ctx.getPart(EntityModelLayers.PLAYER_SLIM)), 0.5F);
         this.addFeature(new ArmorFeatureRenderer(this, new ArmorEntityModel(ctx.getPart(EntityModelLayers.PLAYER_SLIM_INNER_ARMOR)), new ArmorEntityModel(ctx.getPart(EntityModelLayers.PLAYER_SLIM_OUTER_ARMOR)), ctx.getModelManager()));
         //this.addFeature(new PlayerHeldItemFeatureRenderer(this, ctx.getHeldItemRenderer()));
         this.addFeature(new StuckArrowsFeatureRenderer(ctx, this));
@@ -39,17 +40,17 @@ public class HumanRufinaEntityRenderer extends LivingEntityRenderer<AbstractRufi
         this.addFeature(new StuckStingersFeatureRenderer(this));
     }
 
-    public void render(AbstractRufinaEntity abstractClientPlayerEntity, float f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i) {
+    public void render(AbstractDragonmaidenEntity abstractClientPlayerEntity, float f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i) {
         this.setModelPose(abstractClientPlayerEntity);
         super.render(abstractClientPlayerEntity, f, g, matrixStack, vertexConsumerProvider, i);
     }
 
-    public Vec3d getPositionOffset(AbstractRufinaEntity abstractClientPlayerEntity, float f) {
+    public Vec3d getPositionOffset(AbstractDragonmaidenEntity abstractClientPlayerEntity, float f) {
         return abstractClientPlayerEntity.isInSneakingPose() ? new Vec3d(0.0, -0.125, 0.0) : super.getPositionOffset(abstractClientPlayerEntity, f);
     }
 
-    private void setModelPose(AbstractRufinaEntity player) {
-        HumanRufinaEntityModel playerEntityModel = this.getModel();
+    private void setModelPose(AbstractDragonmaidenEntity player) {
+        HumanDragonmaidenEntityModel playerEntityModel = this.getModel();
         if (player.isSpectator()) {
             playerEntityModel.setVisible(false);
             playerEntityModel.head.visible = true;
@@ -80,7 +81,7 @@ public class HumanRufinaEntityRenderer extends LivingEntityRenderer<AbstractRufi
 
     }
 
-    private static BipedEntityModel.ArmPose getArmPose(AbstractRufinaEntity player, Hand hand) {
+    private static BipedEntityModel.ArmPose getArmPose(AbstractDragonmaidenEntity player, Hand hand) {
         ItemStack itemStack = player.getStackInHand(hand);
         if (itemStack.isEmpty()) {
             return BipedEntityModel.ArmPose.EMPTY;
@@ -121,25 +122,25 @@ public class HumanRufinaEntityRenderer extends LivingEntityRenderer<AbstractRufi
         }
     }
 
-    public Identifier getTexture(AbstractRufinaEntity rufinaEntity) {
-        return new Identifier("rufina_mc", "textures/entity/rufina/human_rufina.png");
+    public Identifier getTexture(AbstractDragonmaidenEntity rufinaEntity) {
+        return new Identifier(Dragonmaiden.NAMESPACE, "textures/entity/rufina/human_rufina.png");
     }
 
-    protected void scale(AbstractRufinaEntity abstractClientPlayerEntity, MatrixStack matrixStack, float f) {
+    protected void scale(AbstractDragonmaidenEntity abstractClientPlayerEntity, MatrixStack matrixStack, float f) {
         float g = 0.9375F;
         matrixStack.scale(0.9375F, 0.9375F, 0.9375F);
     }
 
-    public void renderRightArm(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, AbstractRufinaEntity player) {
+    public void renderRightArm(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, AbstractDragonmaidenEntity player) {
         this.renderArm(matrices, vertexConsumers, light, player, this.model.rightArm, this.model.rightSleeve);
     }
 
-    public void renderLeftArm(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, AbstractRufinaEntity player) {
+    public void renderLeftArm(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, AbstractDragonmaidenEntity player) {
         this.renderArm(matrices, vertexConsumers, light, player, this.model.leftArm, this.model.leftSleeve);
     }
 
-    private void renderArm(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, AbstractRufinaEntity player, ModelPart arm, ModelPart sleeve) {
-        HumanRufinaEntityModel playerEntityModel = this.getModel();
+    private void renderArm(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, AbstractDragonmaidenEntity player, ModelPart arm, ModelPart sleeve) {
+        HumanDragonmaidenEntityModel playerEntityModel = this.getModel();
         this.setModelPose(player);
         playerEntityModel.handSwingProgress = 0.0F;
         playerEntityModel.sneaking = false;
@@ -152,7 +153,7 @@ public class HumanRufinaEntityRenderer extends LivingEntityRenderer<AbstractRufi
         sleeve.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntityTranslucent(identifier)), light, OverlayTexture.DEFAULT_UV);
     }
 
-    protected void setupTransforms(AbstractRufinaEntity abstractClientPlayerEntity, MatrixStack matrixStack, float f, float g, float h) {
+    protected void setupTransforms(AbstractDragonmaidenEntity abstractClientPlayerEntity, MatrixStack matrixStack, float f, float g, float h) {
         float i = abstractClientPlayerEntity.getLeaningPitch(h);
         float j = abstractClientPlayerEntity.getPitch(h);
         float k;

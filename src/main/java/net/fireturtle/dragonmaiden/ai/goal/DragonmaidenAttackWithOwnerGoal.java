@@ -1,22 +1,22 @@
-package net.fireturtle.rufina_mc.ai.goal;
+package net.fireturtle.dragonmaiden.ai.goal;
 
 
 import java.util.EnumSet;
 
-import net.fireturtle.rufina_mc.AbstractRufinaEntity;
+import net.fireturtle.dragonmaiden.AbstractDragonmaidenEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.TargetPredicate;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.TrackTargetGoal;
 import net.minecraft.entity.passive.TameableEntity;
 
-public class RufinaAttackWithOwnerGoal
+public class DragonmaidenAttackWithOwnerGoal
         extends TrackTargetGoal {
-    private final AbstractRufinaEntity tameable;
+    private final AbstractDragonmaidenEntity tameable;
     private LivingEntity attacking;
     private int lastAttackTime;
 
-    public RufinaAttackWithOwnerGoal(AbstractRufinaEntity tameable) {
+    public DragonmaidenAttackWithOwnerGoal(AbstractDragonmaidenEntity tameable) {
         super(tameable, false);
         this.tameable = tameable;
         this.setControls(EnumSet.of(Goal.Control.TARGET));

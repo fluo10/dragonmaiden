@@ -1,4 +1,4 @@
-package net.fireturtle.rufina_mc;
+package net.fireturtle.dragonmaiden;
 
 import net.minecraft.entity.CrossbowUser;
 import net.minecraft.entity.EntityType;
@@ -18,20 +18,20 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 
-public class HumanRufinaEntity extends AbstractRufinaEntity implements CrossbowUser {
-    private static final TrackedData<Boolean> CHARGING = DataTracker.registerData(AbstractRufinaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+public class HumanDragonmaidenEntity extends AbstractDragonmaidenEntity implements CrossbowUser {
+    private static final TrackedData<Boolean> CHARGING = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     protected void initDataTracker() {
         super.initDataTracker();
         this.dataTracker.startTracking(CHARGING, false);
     }
-    protected HumanRufinaEntity(EntityType<? extends PassiveEntity> entityType, World world) {
+    protected HumanDragonmaidenEntity(EntityType<? extends PassiveEntity> entityType, World world) {
         super(entityType, world);
         //TODO Auto-generated constructor stub
     }
     @Override
     public ActionResult interactMob(PlayerEntity player, Hand hand) {
         ItemStack itemStack= player.getStackInHand(hand);
-        Rufina.LOGGER.info("ShouldCancelInteraction: {}", player.shouldCancelInteraction());
+        Dragonmaiden.LOGGER.info("ShouldCancelInteraction: {}", player.shouldCancelInteraction());
         if ((player.getUuid() == this.getOwnerUuid())) {
             if (!this.getWorld().isClient) {
                 this.setConverting(player.getUuid(), 60);
@@ -44,7 +44,7 @@ public class HumanRufinaEntity extends AbstractRufinaEntity implements CrossbowU
     
     protected void finishConversion(ServerWorld world) {
         PlayerEntity playerEntity;
-        BeastRufinaEntity rufinaEntity = this.convertTo(Rufina.BEAST_RUFINA, false);
+        BeastDragonmaidenEntity rufinaEntity = this.convertTo(Dragonmaiden.BEAST_DRAGONMAIDEN, false);
 
        
         rufinaEntity.initialize(world, world.getLocalDifficulty(rufinaEntity.getBlockPos()), SpawnReason.CONVERSION, null, null);
