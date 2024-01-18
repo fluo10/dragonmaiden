@@ -83,5 +83,10 @@ public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
         return this.getDragonmaidenFlag(SADDLED_FLAG);
     }
 
+    @Override
+    public boolean isFeedingItem(ItemStack stack) {
+        Item item = stack.getItem();
+        return item.isFood() && item.getFoodComponent().isMeat();
+    }
 
 }

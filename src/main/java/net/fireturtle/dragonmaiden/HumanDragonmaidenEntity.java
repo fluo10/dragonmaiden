@@ -11,6 +11,7 @@ import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.world.ServerWorld;
@@ -85,6 +86,11 @@ public class HumanDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
     }
    public void attack(LivingEntity target, float pullProgress) {
         this.shootAt(target, pullProgress);
+    }
+    @Override
+    public boolean isFeedingItem(ItemStack stack) {
+        Item item = stack.getItem();
+        return item.isFood() && (item.getFoodComponent().getStatusEffects().size() == 0);
     }
 
 }
