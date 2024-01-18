@@ -9,9 +9,9 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 
 public class BeastDragonmaidenEntityRenderer extends MobEntityRenderer<BeastDragonmaidenEntity, BeastDragonmaidenEntityModel> {
-    private static final Identifier WILD_TEXTURE = new Identifier("rufina_mc", "textures/entity/rufina/beast_rufina.png");
-    private static final Identifier TAMED_TEXTURE = new Identifier("rufina_mc", "textures/entity/rufina/beast_rufina.png");
-    private static final Identifier ANGRY_TEXTURE = new Identifier("rufina_mc", "textures/entity/rufina/beast_rufina.png");
+    private static final Identifier WILD_TEXTURE = new Identifier(Dragonmaiden.NAMESPACE, "textures/entity/rufina/beast_rufina.png");
+    private static final Identifier TAMED_TEXTURE = new Identifier(Dragonmaiden.NAMESPACE, "textures/entity/rufina/beast_rufina.png");
+    private static final Identifier ANGRY_TEXTURE = new Identifier(Dragonmaiden.NAMESPACE, "textures/entity/rufina/beast_rufina.png");
     //return new Identifier("rufina_mc", "textures/entity/rufina/rufina.png");
 
     public BeastDragonmaidenEntityRenderer(EntityRendererFactory.Context context) {

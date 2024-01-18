@@ -44,7 +44,7 @@ public class HumanDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
     
     protected void finishConversion(ServerWorld world) {
         PlayerEntity playerEntity;
-        BeastDragonmaidenEntity rufinaEntity = this.convertTo(Dragonmaiden.BEAST_RUFINA, false);
+        BeastDragonmaidenEntity rufinaEntity = this.convertTo(Dragonmaiden.BEAST_DRAGONMAIDEN, false);
 
        
         rufinaEntity.initialize(world, world.getLocalDifficulty(rufinaEntity.getBlockPos()), SpawnReason.CONVERSION, null, null);

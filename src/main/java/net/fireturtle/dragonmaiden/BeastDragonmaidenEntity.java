@@ -48,7 +48,7 @@ public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
     @Override
     protected void finishConversion(ServerWorld world) {
         PlayerEntity playerEntity;
-        HumanDragonmaidenEntity rufinaEntity = this.convertTo(Dragonmaiden.HUMAN_RUFINA, false);
+        HumanDragonmaidenEntity rufinaEntity = this.convertTo(Dragonmaiden.HUMAN_DRAGONMAIDEN, false);
 
 
         rufinaEntity.initialize(world, world.getLocalDifficulty(rufinaEntity.getBlockPos()), SpawnReason.CONVERSION, null, null);
@@ -75,12 +75,12 @@ public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
     @Override
     public void saddle(@Nullable SoundCategory sound) {
         this.items.setStack(0, new ItemStack(Items.SADDLE));
-        this.setRufinaFlag(SADDLED_FLAG, true);
+        this.setDragonmaidenFlag(SADDLED_FLAG, true);
     }
 
     @Override
     public boolean isSaddled() {
-        return this.getRufinaFlag(SADDLED_FLAG);
+        return this.getDragonmaidenFlag(SADDLED_FLAG);
     }
 
 

@@ -123,7 +123,7 @@ public class HumanDragonmaidenEntityRenderer extends LivingEntityRenderer<Abstra
     }
 
     public Identifier getTexture(AbstractDragonmaidenEntity rufinaEntity) {
-        return new Identifier("rufina_mc", "textures/entity/rufina/human_rufina.png");
+        return new Identifier(Dragonmaiden.NAMESPACE, "textures/entity/rufina/human_rufina.png");
     }
 
     protected void scale(AbstractDragonmaidenEntity abstractClientPlayerEntity, MatrixStack matrixStack, float f) {

@@ -69,7 +69,7 @@ import net.minecraft.world.WorldView;
 
 
 public abstract class AbstractDragonmaidenEntity extends PassiveEntity implements Tameable, Angerable, InventoryOwner{
-    protected static final TrackedData<Byte> RUFINA_FLAGS = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BYTE);
+    protected static final TrackedData<Byte> DRAGONMAIDEN_FLAGS = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BYTE);
     protected static final int TAMED_FLAG = 2;
     protected static final int SADDLED_FLAG = 4;
     protected static final TrackedData<Optional<UUID>> OWNER_UUID = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
@@ -112,16 +112,16 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
         this.setPathfindingPenalty(PathNodeType.DANGER_POWDER_SNOW, -1.0F);
     }
 
-    protected boolean getRufinaFlag(int bitmask) {
-        return (this.dataTracker.get(RUFINA_FLAGS) & bitmask) != 0;
+    protected boolean getDragonmaidenFlag(int bitmask) {
+        return (this.dataTracker.get(DRAGONMAIDEN_FLAGS) & bitmask) != 0;
     }
 
-    protected void setRufinaFlag(int bitmask, boolean flag) {
-        byte b = this.dataTracker.get(RUFINA_FLAGS);
+    protected void setDragonmaidenFlag(int bitmask, boolean flag) {
+        byte b = this.dataTracker.get(DRAGONMAIDEN_FLAGS);
         if (flag) {
-            this.dataTracker.set(RUFINA_FLAGS, (byte)(b | bitmask));
+            this.dataTracker.set(DRAGONMAIDEN_FLAGS, (byte)(b | bitmask));
         } else {
-            this.dataTracker.set(RUFINA_FLAGS, (byte)(b & ~bitmask));
+            this.dataTracker.set(DRAGONMAIDEN_FLAGS, (byte)(b & ~bitmask));
         }
     }
 
@@ -130,7 +130,7 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
     }
 
     public boolean isTamed() {
-        return this.getRufinaFlag(TAMED_FLAG);
+        return this.getDragonmaidenFlag(TAMED_FLAG);
     }
 
     protected void onTamedChanged() {
@@ -170,7 +170,6 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
         this.goalSelector.add(8, new WanderAroundFarGoal(this, 1.0));
         this.goalSelector.add(10, new LookAtEntityGoal(this, PlayerEntity.class, 8.0F));
         this.goalSelector.add(10, new LookAroundGoal(this));
-        this.goalSelector.add(2, new DragonmaidenWanderToTargetGoal(this, 2.0, 0.35));
         this.targetSelector.add(1, new DragonmaidenTrackOwnerAttackerGoal(this));
         this.targetSelector.add(2, new DragonmaidenAttackWithOwnerGoal(this));
         this.targetSelector.add(3, (new RevengeGoal(this, new Class[0])).setGroupRevenge(new Class[0]));
@@ -188,7 +187,7 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
 
     protected void initDataTracker() {
         super.initDataTracker();
-        this.dataTracker.startTracking(RUFINA_FLAGS, (byte) 0);
+        this.dataTracker.startTracking(DRAGONMAIDEN_FLAGS, (byte) 0);
         this.dataTracker.startTracking(OWNER_UUID, Optional.empty());
 
         this.dataTracker.startTracking(ANGER_TIME, 0);
@@ -205,15 +204,15 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
         if (this.getOwnerUuid() != null) {
             nbt.putUuid("Owner", this.getOwnerUuid());
         }
-        nbt.putByte("RufinaFlags", this.dataTracker.get(RUFINA_FLAGS));
+        nbt.putByte("DragonmaidenFlags", this.dataTracker.get(DRAGONMAIDEN_FLAGS));
         this.writeAngerToNbt(nbt);
     }
 
     public void readCustomDataFromNbt(NbtCompound nbt) {
         UUID uUID;
         super.readCustomDataFromNbt(nbt);
-        if (nbt.contains("RufinaFlags")) {
-            this.dataTracker.set(RUFINA_FLAGS, nbt.getByte("RufinaFlags"));
+        if (nbt.contains("DragonmaidenFlags")) {
+            this.dataTracker.set(DRAGONMAIDEN_FLAGS, nbt.getByte("DragonmaidenFlags"));
         }
 
         if (nbt.containsUuid("Owner")) {
@@ -359,7 +358,7 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
     }
 
     public void setTamed(boolean tamed) {
-        this.setRufinaFlag(TAMED_FLAG, tamed);
+        this.setDragonmaidenFlag(TAMED_FLAG, tamed);
     }
 
     public ActionResult interactMob(PlayerEntity player, Hand hand) {

@@ -35,47 +35,38 @@ public class Dragonmaiden implements ModInitializer {
 	// This logger is used to write text to the console and the log file.
 	// It is considered best practice to use your mod id as the logger's name.
 	// That way, it's clear which mod wrote info, warnings, and errors.
-    public static final Logger LOGGER = LoggerFactory.getLogger("rufina_mc");
-	public static final Item HALBERD = new Item(new FabricItemSettings());
-	public static final String MOD_ID = "net.fireturtle.rufina_mc";
-	public static final Identifier RUFINA_UUID = new Identifier(MOD_ID, "rufina_uuid");
-	public static final EntityType<HumanDragonmaidenEntity> HUMAN_RUFINA = Registry.register(
+	public static final String MOD_NAME = "dragonmaiden";
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAME);
+	public static final String MOD_ID = "net.fireturtle.dragonmaiden";
+	public static final String NAMESPACE = "net-fireturtle-dragonmaiden";
+	public static final EntityType<HumanDragonmaidenEntity> HUMAN_DRAGONMAIDEN = Registry.register(
 			Registries.ENTITY_TYPE,
-			new Identifier(MOD_ID, "human_rufina"),
+			new Identifier(NAMESPACE, "human_dragonmaiden"),
 			FabricEntityTypeBuilder.create(SpawnGroup.CREATURE, HumanDragonmaidenEntity::new).dimensions(EntityDimensions.fixed(0.75f, 0.75f)).build()
 	);
-	public static final EntityType<BeastDragonmaidenEntity> BEAST_RUFINA = Registry.register(
+	public static final EntityType<BeastDragonmaidenEntity> BEAST_DRAGONMAIDEN = Registry.register(
 			Registries.ENTITY_TYPE,
-			new Identifier(MOD_ID, "beast_rufina"),
+			new Identifier(NAMESPACE, "beast_dragonmaiden"),
 			FabricEntityTypeBuilder.create(SpawnGroup.CREATURE, BeastDragonmaidenEntity::new).dimensions(EntityDimensions.fixed(0.75f, 0.75f)).build()
 	);
-
-
-	@Nullable
-	public AbstractDragonmaidenEntity rufinaEntity = null;
-	
-	@Nullable
-	public PlayerEntity playerEntity = null;
-
-	@Nullable
-	public World rufinaWorld = null;
 
 	public static final Integer DEFAULT_SPAWN_TIMER = 60;
 	Integer spawnTimer = DEFAULT_SPAWN_TIMER;
 
-	public static List<?extends AbstractDragonmaidenEntity> getRufinaEntities(MinecraftServer server) {
+	public static boolean dragonmaidenExistsFlag = false;
+	public static List<?extends AbstractDragonmaidenEntity> getDragonmaidenEntities(MinecraftServer server) {
 		Iterable<ServerWorld> worlds = server.getWorlds();
 		Stream<?extends AbstractDragonmaidenEntity> rufinaEntities = Stream.empty();
 		for (ServerWorld world2 : worlds) {
-			rufinaEntities = Stream.concat(rufinaEntities, world2.getEntitiesByType(BEAST_RUFINA, EntityPredicates.VALID_LIVING_ENTITY).stream());
-			rufinaEntities = Stream.concat(rufinaEntities, world2.getEntitiesByType(HUMAN_RUFINA, EntityPredicates.VALID_LIVING_ENTITY).stream());
+			rufinaEntities = Stream.concat(rufinaEntities, world2.getEntitiesByType(BEAST_DRAGONMAIDEN, EntityPredicates.VALID_LIVING_ENTITY).stream());
+			rufinaEntities = Stream.concat(rufinaEntities, world2.getEntitiesByType(HUMAN_DRAGONMAIDEN, EntityPredicates.VALID_LIVING_ENTITY).stream());
 		}
 		return rufinaEntities.toList();
 	}
 	public static boolean trySpawnUnique(MinecraftServer server) {
-		if (getRufinaEntities(server).size() == 0) {
+		if (getDragonmaidenEntities(server).size() == 0) {
 			ServerWorld overWorld = server.getOverworld();
-			BeastDragonmaidenEntity beastRufinaEntity = BEAST_RUFINA.create(overWorld);
+			BeastDragonmaidenEntity beastRufinaEntity = BEAST_DRAGONMAIDEN.create(overWorld);
 			BlockPos pos = overWorld.getSpawnPos();
 			beastRufinaEntity.refreshPositionAndAngles(pos.getX(), pos.getY(), pos.getZ(), 0 , 0.0f);
 			overWorld.spawnEntity(beastRufinaEntity);
@@ -91,17 +82,15 @@ public class Dragonmaiden implements ModInitializer {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
-		Registry.register(Registries.ITEM, new Identifier("rufina_mc", "halberd"), HALBERD);
-		LOGGER.info("Hello Fabric world!");
-		FabricDefaultAttributeRegistry.register(HUMAN_RUFINA, HumanDragonmaidenEntity.createMobAttributes());
-		FabricDefaultAttributeRegistry.register(BEAST_RUFINA, BeastDragonmaidenEntity.createMobAttributes());
+		FabricDefaultAttributeRegistry.register(HUMAN_DRAGONMAIDEN, HumanDragonmaidenEntity.createMobAttributes());
+		FabricDefaultAttributeRegistry.register(BEAST_DRAGONMAIDEN, BeastDragonmaidenEntity.createMobAttributes());
 
 
 		ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
 			//state = RufinaPersistentState.getServerState(server);
 			//if (state.rufinaUuid == null) {
 			// 	rufinaWorld = server.getOverworld();
-			// 	RufinaEntity rufinaEntity = RUFINA.create(rufinaWorld);
+			// 	RufinaEntity rufinaEntity = DRAGONMAIDEN.create(rufinaWorld);
 			// 	BlockPos pos = rufinaWorld.getSpawnPos();
 			// 	rufinaEntity.refreshPositionAndAngles(pos.getX(), pos.getY(), pos.getZ(), 0 , 0.0f);
 
@@ -125,13 +114,13 @@ public class Dragonmaiden implements ModInitializer {
 			// }
 		});
 		ServerWorldEvents.LOAD.register((server, world) -> {
-			
-		});
-		ServerLifecycleEvents.SERVER_STOPPING.register((server) -> {
-			this.rufinaEntity = null;
+			dragonmaidenExistsFlag = false;		
 		});
 		ServerTickEvents.END_SERVER_TICK.register((server) -> {
-			trySpawnUnique(server);	
+			if (!dragonmaidenExistsFlag) {
+				trySpawnUnique(server);
+				dragonmaidenExistsFlag = true;
+			}	
 		});
 	}
 }
