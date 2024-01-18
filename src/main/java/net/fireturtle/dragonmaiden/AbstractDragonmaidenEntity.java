@@ -7,6 +7,7 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
+import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
@@ -38,6 +39,7 @@ import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -163,7 +165,8 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
     }
 
     public static DefaultAttributeContainer.Builder createMobAttributes() {
-        return MobEntity.createMobAttributes().add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.30000001192092896).add(EntityAttributes.GENERIC_MAX_HEALTH, 8.0).add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 2.0);
+        return MobEntity.createMobAttributes().add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.30000001192092896).add(EntityAttributes.GENERIC_MAX_HEALTH, 8.0).add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 2.0)
+        .add(EntityAttributes.HORSE_JUMP_STRENGTH, 2.0);
     }
 
     protected void initDataTracker() {
@@ -391,10 +394,14 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
                     if (!player.getAbilities().creativeMode) {
                         itemStack.decrement(1);
                     }
+                    if (this.random.nextInt(3) == 0) {
                         this.setOwner(player);
                         this.navigation.stop();
                         this.setTarget((LivingEntity)null);
                         this.getWorld().sendEntityStatus(this, (byte)7);
+                    } else {
+                        this.getWorld().sendEntityStatus(this, (byte)6);
+                     }
                     return ActionResult.SUCCESS;
                 }
 
@@ -617,6 +624,34 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
     
     protected abstract void finishConversion(ServerWorld world);
 
+    public boolean handleFallDamage(float fallDistance, float damageMultiplier, DamageSource damageSource) {
+        if (fallDistance > 1.0F) {
+           this.playSound(SoundEvents.ENTITY_HORSE_LAND, 0.4F, 1.0F);
+        }
+  
+        int i = this.computeFallDamage(fallDistance, damageMultiplier);
+        if (i <= 0) {
+           return false;
+        } else {
+           this.damage(damageSource, (float)i);
+           if (this.hasPassengers()) {
+              Iterator var5 = this.getPassengersDeep().iterator();
+  
+              while(var5.hasNext()) {
+                 Entity entity = (Entity)var5.next();
+                 entity.damage(damageSource, (float)i);
+              }
+           }
+  
+           this.playBlockFallSound();
+           return true;
+        }
+     }
+  
+     protected int computeFallDamage(float fallDistance, float damageMultiplier) {
+        return MathHelper.ceil((fallDistance * 0.5F - 3.0F) * damageMultiplier);
+     }
+  
 }
 
 
