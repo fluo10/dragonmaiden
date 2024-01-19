@@ -52,6 +52,10 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
     protected static final int TAMED_FLAG = 2;
     protected static final int SADDLED_FLAG = 4;
     protected static final int CURED_FLAG = 8;
+    protected static final int SITTING_FLAG = 16;
+    protected static final int ANGRY_FLAG = 32;
+
+
     protected static final TrackedData<Optional<UUID>> OWNER_UUID = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
     private static final TrackedData<Integer> ANGER_TIME;
     protected static final TrackedData<Boolean> CONVERTING = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
@@ -116,6 +120,13 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
         return this.getDragonmaidenFlag(CURED_FLAG);
     }
 
+   public boolean isAngry() {
+      return this.getDragonmaidenFlag(ANGRY_FLAG);
+   }
+   public void setAngry(boolean angry) {
+    this.setDragonmaidenFlag(ANGRY_FLAG, angry);
+ }
+
     protected void onTamedChanged() {
     }
     @Nullable
@@ -165,7 +176,7 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
     }
 
     public static DefaultAttributeContainer.Builder createMobAttributes() {
-        return MobEntity.createMobAttributes().add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.30000001192092896).add(EntityAttributes.GENERIC_MAX_HEALTH, 8.0).add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 2.0)
+        return MobEntity.createMobAttributes().add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.30000001192092896).add(EntityAttributes.GENERIC_MAX_HEALTH, 20.0).add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 2.0)
         .add(EntityAttributes.HORSE_JUMP_STRENGTH, 2.0);
     }
 

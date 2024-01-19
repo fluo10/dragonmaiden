@@ -6,14 +6,18 @@ import com.google.common.collect.UnmodifiableIterator;
 
 import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.entity.Dismounting;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.Saddleable;
 import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.StackReference;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -38,6 +42,9 @@ public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
     protected boolean jumping;
    protected int soundTicks;
    protected boolean inAir;
+   private int angryTicks;
+   private float angryAnimationProgress;
+   private float lastAngryAnimationProgress;
 
     protected BeastDragonmaidenEntity(EntityType<? extends PassiveEntity> entityType, World world) {
         super(entityType, world);
@@ -134,6 +141,39 @@ public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
 
     }
 
+
+   protected void updatePassengerPosition(Entity passenger, Entity.PositionUpdater positionUpdater) {
+      super.updatePassengerPosition(passenger, positionUpdater);
+      if (this.lastAngryAnimationProgress > 0.0F) {
+         float f = MathHelper.sin(this.bodyYaw * 0.017453292F);
+         float g = MathHelper.cos(this.bodyYaw * 0.017453292F);
+         float h = 0.7F * this.lastAngryAnimationProgress;
+         float i = 0.15F * this.lastAngryAnimationProgress;
+         positionUpdater.accept(passenger, this.getX() + (double)(h * f), this.getY() + this.getMountedHeightOffset() + passenger.getHeightOffset() + (double)i, this.getZ() - (double)(h * g));
+         if (passenger instanceof LivingEntity) {
+            ((LivingEntity)passenger).bodyYaw = this.bodyYaw;
+         }
+        }
+    }
+
+
+    @Nullable
+    public LivingEntity getControllingPassenger() {
+        Entity var3 = this.getFirstPassenger();
+        if (var3 instanceof MobEntity mobEntity) {
+            return mobEntity;
+        } else {
+            if (this.isSaddled()) {
+                var3 = this.getFirstPassenger();
+                if (var3 instanceof PlayerEntity) {
+                    PlayerEntity playerEntity = (PlayerEntity) var3;
+                    return playerEntity;
+                }
+            }
+        }
+        return null;
+    }
+
     protected void jump(float strength, Vec3d movementInput) {
         double d = this.getJumpStrength() * (double) strength * (double) this.getJumpVelocityMultiplier();
         double e = d + (double) this.getJumpBoostVelocityModifier();
@@ -205,6 +245,9 @@ public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
         this.playSound(SoundEvents.ENTITY_HORSE_JUMP, 0.4F, 1.0F);
     }
 
+   protected float getSaddledSpeed(PlayerEntity controllingPlayer) {
+      return (float)this.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+   }
     @Nullable
     private Vec3d locateSafeDismountingPos(Vec3d offset, LivingEntity passenger) {
         double d = this.getX() + offset.x;
