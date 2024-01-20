@@ -118,8 +118,11 @@ public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
         Item item = stack.getItem();
         return item.isFood() && item.getFoodComponent().isMeat();
     }
-
+@Override
     protected void tickControlled(PlayerEntity controllingPlayer, Vec3d movementInput) {
+
+        Dragonmaiden.LOGGER.info("Call tickControlled");
+        Dragonmaiden.LOGGER.info("tickControlled: {}", this.isLogicalSideForUpdatingMovement());
         super.tickControlled(controllingPlayer, movementInput);
         Vec2f vec2f = this.getControlledRotation(controllingPlayer);
         this.setRotation(vec2f.y, vec2f.x);
@@ -141,7 +144,7 @@ public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
 
     }
 
-
+    @Override
    protected void updatePassengerPosition(Entity passenger, Entity.PositionUpdater positionUpdater) {
       super.updatePassengerPosition(passenger, positionUpdater);
       if (this.lastAngryAnimationProgress > 0.0F) {
@@ -173,8 +176,7 @@ public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
         }
         return null;
     }
-
-    protected void jump(float strength, Vec3d movementInput) {
+   protected void jump(float strength, Vec3d movementInput) {
         double d = this.getJumpStrength() * (double) strength * (double) this.getJumpVelocityMultiplier();
         double e = d + (double) this.getJumpBoostVelocityModifier();
         Vec3d vec3d = this.getVelocity();
@@ -228,7 +230,7 @@ public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
     }
 
     protected Vec3d getControlledMovementInput(PlayerEntity controllingPlayer, Vec3d movementInput) {
-        if (this.isOnGround() && this.jumpStrength == 0.0F && !this.jumping) {
+        if (this.isOnGround() && this.jumpStrength == 0.0F && this.isAngry() && !this.jumping) {
             return Vec3d.ZERO;
         } else {
             float f = controllingPlayer.sidewaysSpeed * 0.5F;

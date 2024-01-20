@@ -80,7 +80,7 @@ public class Dragonmaiden implements ModInitializer {
     }
     public static List<AbstractDragonmaidenEntity> getOwnedDragonmaidens(MinecraftServer server){
       List<AbstractDragonmaidenEntity> dragonmaidens = new ArrayList<AbstractDragonmaidenEntity>(); 
-      for (AbstractDragonmaidenEntity dragonmaiden : getOwnedDragonmaidens(server)) {
+      for (AbstractDragonmaidenEntity dragonmaiden : getDragonmaidenEntities(server)) {
         if (dragonmaiden.getOwner() != null) {
           dragonmaidens.add(dragonmaiden);
         }
