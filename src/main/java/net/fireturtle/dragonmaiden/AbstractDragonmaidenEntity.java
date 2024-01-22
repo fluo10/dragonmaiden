@@ -667,32 +667,9 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
     
     protected abstract void finishConversion(ServerWorld world);
 
-    public boolean handleFallDamage(float fallDistance, float damageMultiplier, DamageSource damageSource) {
-        if (fallDistance > 1.0F) {
-           this.playSound(SoundEvents.ENTITY_HORSE_LAND, 0.4F, 1.0F);
-        }
-  
-        int i = this.computeFallDamage(fallDistance, damageMultiplier);
-        if (i <= 0) {
-           return false;
-        } else {
-           this.damage(damageSource, (float)i);
-           if (this.hasPassengers()) {
-              Iterator var5 = this.getPassengersDeep().iterator();
-  
-              while(var5.hasNext()) {
-                 Entity entity = (Entity)var5.next();
-                 entity.damage(damageSource, (float)i);
-              }
-           }
-  
-           this.playBlockFallSound();
-           return true;
-        }
-     }
-  
+    @Override
      protected int computeFallDamage(float fallDistance, float damageMultiplier) {
-        return MathHelper.ceil((fallDistance * 0.5F - 3.0F) * damageMultiplier);
+        return 0;
      }
   
      public void updateAnger() {

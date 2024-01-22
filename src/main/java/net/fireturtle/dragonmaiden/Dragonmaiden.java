@@ -42,7 +42,7 @@ public class Dragonmaiden implements ModInitializer {
 			new Identifier(NAMESPACE, "beast_dragonmaiden"),
 			FabricEntityTypeBuilder.create(SpawnGroup.CREATURE, BeastDragonmaidenEntity::new).dimensions(EntityDimensions.fixed(1.4f, 1.4f)).build()
 	);
-
+  
 	public static final Integer DEFAULT_SPAWN_TIMER = 60;
 	Integer spawnTimer = DEFAULT_SPAWN_TIMER;
 
@@ -109,7 +109,6 @@ public class Dragonmaiden implements ModInitializer {
       }
       return false;
     }
-
 
 	@Override
 	public void onInitialize() {

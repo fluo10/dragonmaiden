@@ -4,7 +4,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.google.common.collect.UnmodifiableIterator;
 
-import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.entity.Dismounting;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPose;
@@ -13,16 +12,13 @@ import net.minecraft.entity.JumpingMount;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.Saddleable;
 import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.StackReference;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -303,6 +299,25 @@ public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
             Vec3d vec3d4 = this.locateSafeDismountingPos(vec3d3, passenger);
             return vec3d4 != null ? vec3d4 : this.getPos();
         }
+    }
+    @Override
+    public void tickMovement() {
+         super.tickMovement();
+         //this.prevFlapProgress = this.flapProgress;
+         //this.prevMaxWingDeviation = this.maxWingDeviation;
+         //this.maxWingDeviation += (this.isOnGround() ? -1.0F : 4.0F) * 0.3F;
+         //this.maxWingDeviation = MathHelper.clamp(this.maxWingDeviation, 0.0F, 1.0F);
+         //if (!this.isOnGround() && this.flapSpeed < 1.0F) {
+         //   this.flapSpeed = 1.0F;
+         //}
+   
+         //this.flapSpeed *= 0.9F;
+         Vec3d vec3d = this.getVelocity();
+         if (!this.isOnGround() && vec3d.y < 0.0) {
+            this.setVelocity(vec3d.multiply(1.0, 0.6, 1.0));
+         }
+   
+        // this.flapProgress += this.flapSpeed * 2.0F;
     }
     
     @Override
