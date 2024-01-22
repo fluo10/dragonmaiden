@@ -1,24 +1,65 @@
 package net.fireturtle.dragonmaiden;
 
-import net.fireturtle.dragonmaiden.ai.goal.*;
+import java.util.Iterator;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Predicate;
+
+import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
+
+import net.fireturtle.dragonmaiden.ai.goal.DragonmaidenAttackWithOwnerGoal;
+import net.fireturtle.dragonmaiden.ai.goal.DragonmaidenFollowOwnerGoal;
+import net.fireturtle.dragonmaiden.ai.goal.DragonmaidenTrackOwnerAttackerGoal;
+import net.fireturtle.dragonmaiden.ai.goal.DragonmaidenUntamedActiveTargetGoal;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.entity.PlayerModelPart;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.*;
-import net.minecraft.entity.ai.goal.*;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityDimensions;
+import net.minecraft.entity.EntityPose;
+import net.minecraft.entity.EntityStatuses;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.InventoryOwner;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.Tameable;
+import net.minecraft.entity.ai.goal.ActiveTargetGoal;
+import net.minecraft.entity.ai.goal.EscapeDangerGoal;
+import net.minecraft.entity.ai.goal.LookAroundGoal;
+import net.minecraft.entity.ai.goal.LookAtEntityGoal;
+import net.minecraft.entity.ai.goal.MeleeAttackGoal;
+import net.minecraft.entity.ai.goal.PounceAtTargetGoal;
+import net.minecraft.entity.ai.goal.RevengeGoal;
+import net.minecraft.entity.ai.goal.SwimGoal;
+import net.minecraft.entity.ai.goal.UniversalAngerGoal;
+import net.minecraft.entity.ai.goal.WanderAroundFarGoal;
+import net.minecraft.entity.ai.pathing.PathNodeType;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
-import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.mob.*;
-import net.minecraft.entity.passive.*;
 import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.data.TrackedDataHandlerRegistry;
+import net.minecraft.entity.mob.AbstractSkeletonEntity;
+import net.minecraft.entity.mob.Angerable;
+import net.minecraft.entity.mob.CreeperEntity;
+import net.minecraft.entity.mob.GhastEntity;
+import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.passive.AbstractHorseEntity;
+import net.minecraft.entity.passive.AnimalEntity;
+import net.minecraft.entity.passive.PassiveEntity;
+import net.minecraft.entity.passive.TameableEntity;
+import net.minecraft.entity.passive.TurtleEntity;
+import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
 import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.*;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.item.RangedWeaponItem;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.ServerConfigHandler;
@@ -36,16 +77,6 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.world.EntityView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
-import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3f;
-
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Predicate;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.pathing.PathNodeType;
-import net.minecraft.entity.passive.TameableEntity;
 
 public abstract class AbstractDragonmaidenEntity extends PassiveEntity implements Tameable, Angerable, InventoryOwner{
     protected static final TrackedData<Byte> DRAGONMAIDEN_FLAGS = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BYTE);
@@ -85,6 +116,7 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
     @Nullable
     private BlockPos wanderTarget;
     private int despawnDelay;
+    private int angryTicks;
 
     protected static final TrackedData<Byte> PLAYER_MODEL_PARTS = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BYTE);
 
@@ -663,6 +695,17 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
         return MathHelper.ceil((fallDistance * 0.5F - 3.0F) * damageMultiplier);
      }
   
+     public void updateAnger() {
+         if (this.shouldAmbientStand() && this.canMoveVoluntarily()) {
+             this.angryTicks = 1;
+             this.setAngry(true);
+         }
+     }
+     protected boolean shouldAmbientStand() {
+        return true;
+     }
+
+ 
 }
 
 

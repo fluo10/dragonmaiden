@@ -9,6 +9,7 @@ import net.minecraft.entity.Dismounting;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.JumpingMount;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.Saddleable;
 import net.minecraft.entity.SpawnReason;
@@ -36,7 +37,7 @@ import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implements Saddleable{
+public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implements Saddleable, JumpingMount{
 
     protected float jumpStrength;
     protected boolean jumping;
@@ -197,7 +198,7 @@ public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
                 strength = 0;
             } else {
                 this.jumping = true;
-                // this.updateAnger();
+                this.updateAnger();
             }
 
             if (strength >= 90) {
@@ -219,6 +220,7 @@ public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
 
     public void startJumping(int height) {
         this.jumping = true;
+        this.updateAnger();
         this.playJumpSound();
     }
 
@@ -247,6 +249,7 @@ public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
         this.playSound(SoundEvents.ENTITY_HORSE_JUMP, 0.4F, 1.0F);
     }
 
+    @Override
    protected float getSaddledSpeed(PlayerEntity controllingPlayer) {
       return (float)this.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED);
    }
@@ -300,6 +303,29 @@ public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
             Vec3d vec3d4 = this.locateSafeDismountingPos(vec3d3, passenger);
             return vec3d4 != null ? vec3d4 : this.getPos();
         }
+    }
+    
+    @Override
+    public void tick() {
+        super.tick();
+      if (this.canMoveVoluntarily() && this.angryTicks > 0 && ++this.angryTicks > 20) {
+         this.angryTicks = 0;
+         this.setAngry(false);
+      }
+      this.lastAngryAnimationProgress = this.angryAnimationProgress;
+      if (this.isAngry()) {
+         this.angryAnimationProgress += (1.0F - this.angryAnimationProgress) * 0.4F + 0.05F;
+         if (this.angryAnimationProgress > 1.0F) {
+            this.angryAnimationProgress = 1.0F;
+         }
+      } else {
+         this.jumping = false;
+         this.angryAnimationProgress += (0.8F * this.angryAnimationProgress * this.angryAnimationProgress * this.angryAnimationProgress - this.angryAnimationProgress) * 0.6F - 0.05F;
+         if (this.angryAnimationProgress < 0.0F) {
+            this.angryAnimationProgress = 0.0F;
+         }
+      }
+        
     }
 
     public boolean isInAir() {
