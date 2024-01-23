@@ -1,6 +1,5 @@
 package net.fireturtle.dragonmaiden;
 
-import java.util.Iterator;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -41,8 +40,8 @@ import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.data.TrackedDataHandler;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.mob.AbstractSkeletonEntity;
 import net.minecraft.entity.mob.Angerable;
 import net.minecraft.entity.mob.CreeperEntity;
 import net.minecraft.entity.mob.GhastEntity;
@@ -51,7 +50,6 @@ import net.minecraft.entity.passive.AbstractHorseEntity;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.entity.passive.TameableEntity;
-import net.minecraft.entity.passive.TurtleEntity;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
@@ -70,7 +68,6 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TimeHelper;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.intprovider.UniformIntProvider;
 import net.minecraft.util.math.random.Random;
@@ -80,21 +77,27 @@ import net.minecraft.world.WorldAccess;
 
 public abstract class AbstractDragonmaidenEntity extends PassiveEntity implements Tameable, Angerable, InventoryOwner{
     public static final String ANGRY_NBT_KEY = "Angry";
-    public static final String CONVERTING_NBT_KEY = "Converting";
-    public static final String CURED_NBT_KEY = "Cured";
+    public static final String CURSED_NBT_KEY = "Cursed";
     public static final String ENCHANTED_NBT_KEY = "Enchanted";
-    public static final String DANCING_NBT_KEY = "Dancing";
+    //public static final String DANCING_NBT_KEY = "Dancing";
+    public static final String OWNER_NBT_KEY = "Owner";
     public static final String SADDLED_NBT_KEY = "Saddled";
     public static final String SITTING_NBT_KEY = "Sitting";
-    public static final String TAMED_NBT_KEY = "Tamed";
-    protected static final TrackedData<Boolean> ANGRY = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-    protected static final TrackedData<Boolean> CONVERTING = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-    protected static final TrackedData<Boolean> CURED = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-    protected static final TrackedData<Boolean> ENCHANTED = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-    protected static final TrackedData<Boolean> DANCING = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-    protected static final TrackedData<Boolean> SADDLED = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-    protected static final TrackedData<Boolean> SITTING = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-    protected static final TrackedData<Boolean> TAMED = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    public static final String TRANSFORMATION_TIMER_NBT_KEY = "TransformationTimer";
+    public static final String TRANSFORMING_NBT_KEY = "Transforming";
+    
+    private static final TrackedData<Integer> DRAGONMAIDEN_FLAGS = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    
+ 
+    
+    protected static final Integer ANGRY_FLAG = 2;
+    protected static final Integer CURSED_FLAG = 4;
+    protected static final Integer ENCHANTED_FLAG = 8;
+    protected static final Integer DANCING_FLAG = 16;
+    protected static final Integer SADDLED_FLAG = 32;
+    protected static final Integer SITTING_FLAG = 64;
+    protected static final Integer TAMED_FLAG = 128;
+    protected static final Integer TRANSFORMING_FLAG = 256;
 
 
     protected static final TrackedData<Optional<UUID>> OWNER_UUID = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
@@ -102,9 +105,7 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
     
     public static final Predicate<LivingEntity> FOLLOW_TAMED_PREDICATE;
     private static final UniformIntProvider ANGER_TIME_RANGE;
-    private int conversionTimer;
-    @Nullable
-    protected UUID converter;
+    private int transformationTimer;
 
     @Nullable
     private UUID angryAt;
@@ -127,22 +128,43 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
     }
 
 
+   protected boolean getDragonmaidenFlag(int bitmask) {
+      return ((Integer)this.dataTracker.get(DRAGONMAIDEN_FLAGS) & bitmask) != 0;
+   }
+
+   protected void setDragonmaidenFlag(int bitmask, boolean flag) {
+      Integer i = (Integer)this.dataTracker.get(DRAGONMAIDEN_FLAGS);
+      if (flag) {
+         this.dataTracker.set(DRAGONMAIDEN_FLAGS, (Integer)(i | bitmask));
+      } else {
+         this.dataTracker.set(DRAGONMAIDEN_FLAGS, (Integer)(i & ~bitmask));
+      }
+
+   }
+
     public EntityView method_48926() {
         return super.getWorld();
     }
 
     public boolean isTamed() {
-        return this.dataTracker.get(TAMED);
+        return this.getDragonmaidenFlag(TAMED_FLAG);
     }
-    public boolean isCured() {
-        return this.dataTracker.get(CURED);
+    public void setTamed(boolean tamed) {
+        this.setDragonmaidenFlag(TAMED_FLAG, tamed);
+    }
+
+    public boolean isCursed() {
+        return this.getDragonmaidenFlag(CURSED_FLAG);
+    }
+    public void setCursed(boolean cursed) {
+        this.setDragonmaidenFlag(CURSED_FLAG, cursed);
     }
 
    public boolean isAngry() {
-      return this.dataTracker.get(ANGRY);
+        return this.getDragonmaidenFlag(ANGRY_FLAG);
    }
    public void setAngry(boolean angry) {
-    this.dataTracker.set(ANGRY, angry);
+        this.setDragonmaidenFlag(ANGRY_FLAG, angry);
  }
 
     protected void onTamedChanged() {
@@ -187,8 +209,8 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
         this.targetSelector.add(3, (new RevengeGoal(this, new Class[0])).setGroupRevenge(new Class[0]));
         this.targetSelector.add(4, new ActiveTargetGoal<PlayerEntity>(this, PlayerEntity.class, 10, true, false, this::shouldAngerAt));
         this.targetSelector.add(5, new DragonmaidenUntamedActiveTargetGoal<AnimalEntity>(this, AnimalEntity.class, false, FOLLOW_TAMED_PREDICATE));
-        this.targetSelector.add(6, new DragonmaidenUntamedActiveTargetGoal<TurtleEntity>(this, TurtleEntity.class, false, TurtleEntity.BABY_TURTLE_ON_LAND_FILTER));
-        this.targetSelector.add(7, new ActiveTargetGoal(this, AbstractSkeletonEntity.class, false));
+        //this.targetSelector.add(6, new DragonmaidenUntamedActiveTargetGoal<TurtleEntity>(this, TurtleEntity.class, false, TurtleEntity.BABY_TURTLE_ON_LAND_FILTER));
+        //this.targetSelector.add(7, new ActiveTargetGoal(this, AbstractSkeletonEntity.class, false));
         this.targetSelector.add(8, new UniversalAngerGoal(this, true));
 
     }
@@ -205,14 +227,7 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
 
         this.dataTracker.startTracking(ANGER_TIME, 0);
         this.dataTracker.startTracking(PLAYER_MODEL_PARTS, (byte)127);
-        this.dataTracker.startTracking(ANGRY, false);
-        this.dataTracker.startTracking(CONVERTING, false);
-        this.dataTracker.startTracking(CURED, false);
-        this.dataTracker.startTracking(DANCING, false);
-        this.dataTracker.startTracking(ENCHANTED, false);
-        this.dataTracker.startTracking(SADDLED, false);
-        this.dataTracker.startTracking(SITTING, false);
-        this.dataTracker.startTracking(TAMED, false);
+        this.dataTracker.startTracking(DRAGONMAIDEN_FLAGS, 0);
     }
 
     protected void playStepSound(BlockPos pos, BlockState state) {
@@ -221,23 +236,22 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
 
     public void writeCustomDataToNbt(NbtCompound nbt) {
         super.writeCustomDataToNbt(nbt);
+        nbt.putBoolean(CURSED_NBT_KEY, this.isCursed());
+        nbt.putBoolean(ENCHANTED_NBT_KEY, this.getDragonmaidenFlag(ENCHANTED_FLAG));
         if (this.getOwnerUuid() != null) {
-            nbt.putUuid("Owner", this.getOwnerUuid());
+            nbt.putUuid(OWNER_NBT_KEY, this.getOwnerUuid());
         }
-        nbt.putBoolean(ANGRY_NBT_KEY, this.dataTracker.get(ANGRY));
-        nbt.putBoolean(CONVERTING_NBT_KEY, this.dataTracker.get(CONVERTING));
-        nbt.putBoolean(CURED_NBT_KEY, this.dataTracker.get(CURED));
-        nbt.putBoolean(SADDLED_NBT_KEY, this.dataTracker.get(SADDLED));
-        nbt.putBoolean(SITTING_NBT_KEY, this.dataTracker.get(SITTING));
-        nbt.putBoolean(TAMED_NBT_KEY, this.dataTracker.get(TAMED));
+        nbt.putBoolean(SADDLED_NBT_KEY, this.getDragonmaidenFlag(SADDLED_FLAG));
+        nbt.putInt(TRANSFORMATION_TIMER_NBT_KEY, this.transformationTimer);
         this.writeAngerToNbt(nbt);
     }
 
     public void readCustomDataFromNbt(NbtCompound nbt) {
         UUID uUID;
         super.readCustomDataFromNbt(nbt);
-        if (nbt.contains("DragonmaidenFlags")) {
-            this.dataTracker.set(DRAGONMAIDEN_FLAGS, nbt.getByte("DragonmaidenFlags"));
+
+        if (nbt.contains(TRANSFORMATION_TIMER_NBT_KEY)){
+            setTransforming(nbt.getInt(TRANSFORMATION_TIMER_NBT_KEY));
         }
 
         if (nbt.containsUuid("Owner")) {
@@ -283,13 +297,6 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
 
     public void tickMovement() {
         super.tickMovement();
-        if (!this.getWorld().isClient && this.furWet && !this.canShakeWaterOff && !this.isNavigating() && this.isOnGround()) {
-            this.canShakeWaterOff = true;
-            this.shakeProgress = 0.0F;
-            this.lastShakeProgress = 0.0F;
-            this.getWorld().sendEntityStatus(this, (byte)8);
-        }
-
         if (!this.getWorld().isClient) {
             this.tickAngerLogic((ServerWorld)this.getWorld(), true);
         }
@@ -298,62 +305,19 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
 
     public void tick() {
         
-        if (!this.getWorld().isClient && this.isAlive() && this.isConverting()) {
-            this.conversionTimer -= 1;
-            if (this.conversionTimer <= 0) {
-                this.finishConversion((ServerWorld)this.getWorld());
+        if (!this.getWorld().isClient && this.isAlive() && this.isTransforming()) {
+            this.transformationTimer -= 1;
+            if (this.transformationTimer <= 0) {
+                this.finishTransformation((ServerWorld)this.getWorld());
             }
         }
         super.tick();
-        if (this.isAlive()) {
-            this.lastBegAnimationProgress = this.begAnimationProgress;
-
-            if (this.isWet()) {
-                this.furWet = true;
-                if (this.canShakeWaterOff && !this.getWorld().isClient) {
-                    this.getWorld().sendEntityStatus(this, (byte)56);
-                    this.resetShake();
-                }
-            } 
-        }
-    }
-
-    private void resetShake() {
-        this.canShakeWaterOff = false;
-        this.shakeProgress = 0.0F;
-        this.lastShakeProgress = 0.0F;
     }
 
     public void onDeath(DamageSource damageSource) {
-        this.furWet = false;
-        this.canShakeWaterOff = false;
-        this.lastShakeProgress = 0.0F;
-        this.shakeProgress = 0.0F;
         super.onDeath(damageSource);
     }
 
-    public boolean isFurWet() {
-        return this.furWet;
-    }
-
-    public float getFurWetBrightnessMultiplier(float tickDelta) {
-        return Math.min(0.5F + MathHelper.lerp(tickDelta, this.lastShakeProgress, this.shakeProgress) / 2.0F * 0.5F, 1.0F);
-    }
-
-    public float getShakeAnimationProgress(float tickDelta, float f) {
-        float g = (MathHelper.lerp(tickDelta, this.lastShakeProgress, this.shakeProgress) + f) / 1.8F;
-        if (g < 0.0F) {
-            g = 0.0F;
-        } else if (g > 1.0F) {
-            g = 1.0F;
-        }
-
-        return MathHelper.sin(g * 3.1415927F) * MathHelper.sin(g * 3.1415927F * 11.0F) * 0.15F * 3.1415927F;
-    }
-
-    public float getBegAnimationProgress(float tickDelta) {
-        return MathHelper.lerp(tickDelta, this.lastBegAnimationProgress, this.begAnimationProgress) * 0.15F * 3.1415927F;
-    }
 
     protected float getActiveEyeHeight(EntityPose pose, EntityDimensions dimensions) {
         return dimensions.height * 1.6F;
@@ -382,16 +346,13 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
         return bl;
     }
 
-    public void setTamed(boolean tamed) {
-        this.setDragonmaidenFlag(TAMED_FLAG, tamed);
-    }
 
     public ActionResult interactMob(PlayerEntity player, Hand hand) {
         ItemStack itemStack = player.getStackInHand(hand);
         Item item = itemStack.getItem();
-        if (this.isOwner(player) && player.shouldCancelInteraction() && this.isCured()) {
+        if (this.isOwner(player) && player.shouldCancelInteraction() && !this.isCursed()) {
             if (!this.getWorld().isClient()) {
-                this.setConverting(player.getUuid(), 60);
+                this.setTransforming(60);
             }
             return ActionResult.SUCCESS;
         }
@@ -412,7 +373,7 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
                       if (!player.getAbilities().creativeMode) {
                         itemStack.decrement(1);
                       }
-                      this.setFlag(CURED_FLAG, true);
+                      this.setCursed(false);
                       
                       return ActionResult.SUCCESS;
                     }
@@ -428,7 +389,7 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
                         this.navigation.stop();
                         this.setTarget((LivingEntity)null);
                         this.getWorld().sendEntityStatus(this, (byte)7);
-                        this.setFlag(CURED_FLAG, true);
+                        this.setCursed(false);
 
                     return ActionResult.SUCCESS;
                 } else if (isFeedingItem(itemStack) && !this.hasAngerTime()) {
@@ -462,13 +423,7 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
     }
 
     public void handleStatus(byte status) {
-        if (status == 8) {
-            this.canShakeWaterOff = true;
-            this.shakeProgress = 0.0F;
-            this.lastShakeProgress = 0.0F;
-        } else if (status == 56) {
-            this.resetShake();
-        } else if (status == EntityStatuses.PLAY_CURE_ZOMBIE_VILLAGER_SOUND) {
+        if (status == EntityStatuses.PLAY_CURE_ZOMBIE_VILLAGER_SOUND) {
             if (!this.isSilent()) {
                     this.getWorld().playSound(this.getX(), this.getEyeY(), this.getZ(), SoundEvents.ENTITY_ZOMBIE_VILLAGER_CURE, this.getSoundCategory(), 1.0f + this.random.nextFloat(), this.random.nextFloat() * 0.7f + 0.3f, false);
                 }
@@ -649,21 +604,19 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
 
     @Override
     public boolean canImmediatelyDespawn(double distanceSquared) {
-        return !this.isConverting();
+        return !this.isTransforming();
     }
 
-    public boolean isConverting() {
-        return this.getDataTracker().get(CONVERTING);
+    public boolean isTransforming() {
+        return this.getDragonmaidenFlag(TRANSFORMING_FLAG);
     }
-
-    protected void setConverting(@Nullable UUID uuid, int delay) {
-        this.converter = uuid;
-        this.conversionTimer = delay;
-        this.getDataTracker().set(CONVERTING, true);
-        this.getWorld().sendEntityStatus(this, EntityStatuses.PLAY_CURE_ZOMBIE_VILLAGER_SOUND);
+    protected void setTransforming(int delay) {
+        this.transformationTimer = delay;
+        this.getDragonmaidenFlag(TRANSFORMING_FLAG);
+        //this.getWorld().sendEntityStatus(this, EntityStatuses.PLAY_CURE_ZOMBIE_VILLAGER_SOUND);
     }
     
-    protected abstract void finishConversion(ServerWorld world);
+    protected abstract void finishTransformation(ServerWorld world);
 
     @Override
      protected int computeFallDamage(float fallDistance, float damageMultiplier) {

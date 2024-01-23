@@ -25,14 +25,7 @@ public class BeastDragonmaidenEntityRenderer extends MobEntityRenderer<BeastDrag
 
     @Override
     public void render(BeastDragonmaidenEntity wolfEntity, float f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i) {
-        if (wolfEntity.isFurWet()) {
-            float h = wolfEntity.getFurWetBrightnessMultiplier(g);
-            ((BeastDragonmaidenEntityModel)this.model).setColorMultiplier(h, h, h);
-        }
         super.render(wolfEntity, f, g, matrixStack, vertexConsumerProvider, i);
-        if (wolfEntity.isFurWet()) {
-            ((BeastDragonmaidenEntityModel)this.model).setColorMultiplier(1.0f, 1.0f, 1.0f);
-        }
     }
 
     @Override
