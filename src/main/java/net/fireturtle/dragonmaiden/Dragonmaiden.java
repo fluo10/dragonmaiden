@@ -31,7 +31,7 @@ public class Dragonmaiden implements ModInitializer {
 	public static final String MOD_NAME = "dragonmaiden";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAME);
 	public static final String MOD_ID = "net.fireturtle.dragonmaiden";
-	public static final String NAMESPACE = "net-fireturtle-dragonmaiden";
+	public static final String NAMESPACE = "net_fireturtle_dragonmaiden";
 	public static final EntityType<HumanDragonmaidenEntity> HUMAN_DRAGONMAIDEN = Registry.register(
 			Registries.ENTITY_TYPE,
 			new Identifier(NAMESPACE, "human_dragonmaiden"),

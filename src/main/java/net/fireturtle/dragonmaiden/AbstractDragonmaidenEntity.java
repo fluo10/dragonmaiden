@@ -79,29 +79,28 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 
 public abstract class AbstractDragonmaidenEntity extends PassiveEntity implements Tameable, Angerable, InventoryOwner{
-    protected static final TrackedData<Byte> DRAGONMAIDEN_FLAGS = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BYTE);
-    protected static final int TAMED_FLAG = 2;
-    protected static final int SADDLED_FLAG = 4;
-    protected static final int CURED_FLAG = 8;
-    protected static final int SITTING_FLAG = 16;
-    protected static final int ANGRY_FLAG = 32;
+    public static final String ANGRY_NBT_KEY = "Angry";
+    public static final String CONVERTING_NBT_KEY = "Converting";
+    public static final String CURED_NBT_KEY = "Cured";
+    public static final String ENCHANTED_NBT_KEY = "Enchanted";
+    public static final String DANCING_NBT_KEY = "Dancing";
+    public static final String SADDLED_NBT_KEY = "Saddled";
+    public static final String SITTING_NBT_KEY = "Sitting";
+    public static final String TAMED_NBT_KEY = "Tamed";
+    protected static final TrackedData<Boolean> ANGRY = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    protected static final TrackedData<Boolean> CONVERTING = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    protected static final TrackedData<Boolean> CURED = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    protected static final TrackedData<Boolean> ENCHANTED = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    protected static final TrackedData<Boolean> DANCING = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    protected static final TrackedData<Boolean> SADDLED = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    protected static final TrackedData<Boolean> SITTING = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    protected static final TrackedData<Boolean> TAMED = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 
 
     protected static final TrackedData<Optional<UUID>> OWNER_UUID = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
     private static final TrackedData<Integer> ANGER_TIME;
-    protected static final TrackedData<Boolean> CONVERTING = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-    private static final TrackedData<Integer> LOYAL_TIME = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.INTEGER);
-    private static final TrackedData<Boolean> ALLOWED_TRANSFORMATION_FLAG = DataTracker.registerData(AbstractDragonmaidenEntity.class, TrackedDataHandlerRegistry.BOOLEAN);    
     
     public static final Predicate<LivingEntity> FOLLOW_TAMED_PREDICATE;
-    private static final float WILD_MAX_HEALTH = 8.0F;
-    private static final float TAMED_MAX_HEALTH = 20.0F;
-    private float begAnimationProgress;
-    private float lastBegAnimationProgress;
-    private boolean furWet;
-    private boolean canShakeWaterOff;
-    private float shakeProgress;
-    private float lastShakeProgress;
     private static final UniformIntProvider ANGER_TIME_RANGE;
     private int conversionTimer;
     @Nullable
@@ -111,7 +110,6 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
     private UUID angryAt;
     protected final SimpleInventory items = new SimpleInventory(36);
 
-    private static final int field_30629 = 5;
 
     @Nullable
     private BlockPos wanderTarget;
@@ -128,35 +126,23 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
         this.setPathfindingPenalty(PathNodeType.DANGER_POWDER_SNOW, -1.0F);
     }
 
-    protected boolean getDragonmaidenFlag(int bitmask) {
-        return (this.dataTracker.get(DRAGONMAIDEN_FLAGS) & bitmask) != 0;
-    }
-
-    protected void setDragonmaidenFlag(int bitmask, boolean flag) {
-        byte b = this.dataTracker.get(DRAGONMAIDEN_FLAGS);
-        if (flag) {
-            this.dataTracker.set(DRAGONMAIDEN_FLAGS, (byte)(b | bitmask));
-        } else {
-            this.dataTracker.set(DRAGONMAIDEN_FLAGS, (byte)(b & ~bitmask));
-        }
-    }
 
     public EntityView method_48926() {
         return super.getWorld();
     }
 
     public boolean isTamed() {
-        return this.getDragonmaidenFlag(TAMED_FLAG);
+        return this.dataTracker.get(TAMED);
     }
     public boolean isCured() {
-        return this.getDragonmaidenFlag(CURED_FLAG);
+        return this.dataTracker.get(CURED);
     }
 
    public boolean isAngry() {
-      return this.getDragonmaidenFlag(ANGRY_FLAG);
+      return this.dataTracker.get(ANGRY);
    }
    public void setAngry(boolean angry) {
-    this.setDragonmaidenFlag(ANGRY_FLAG, angry);
+    this.dataTracker.set(ANGRY, angry);
  }
 
     protected void onTamedChanged() {
@@ -214,12 +200,19 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
 
     protected void initDataTracker() {
         super.initDataTracker();
-        this.dataTracker.startTracking(DRAGONMAIDEN_FLAGS, (byte) 0);
         this.dataTracker.startTracking(OWNER_UUID, Optional.empty());
+
 
         this.dataTracker.startTracking(ANGER_TIME, 0);
         this.dataTracker.startTracking(PLAYER_MODEL_PARTS, (byte)127);
+        this.dataTracker.startTracking(ANGRY, false);
         this.dataTracker.startTracking(CONVERTING, false);
+        this.dataTracker.startTracking(CURED, false);
+        this.dataTracker.startTracking(DANCING, false);
+        this.dataTracker.startTracking(ENCHANTED, false);
+        this.dataTracker.startTracking(SADDLED, false);
+        this.dataTracker.startTracking(SITTING, false);
+        this.dataTracker.startTracking(TAMED, false);
     }
 
     protected void playStepSound(BlockPos pos, BlockState state) {
@@ -231,7 +224,12 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
         if (this.getOwnerUuid() != null) {
             nbt.putUuid("Owner", this.getOwnerUuid());
         }
-        nbt.putByte("DragonmaidenFlags", this.dataTracker.get(DRAGONMAIDEN_FLAGS));
+        nbt.putBoolean(ANGRY_NBT_KEY, this.dataTracker.get(ANGRY));
+        nbt.putBoolean(CONVERTING_NBT_KEY, this.dataTracker.get(CONVERTING));
+        nbt.putBoolean(CURED_NBT_KEY, this.dataTracker.get(CURED));
+        nbt.putBoolean(SADDLED_NBT_KEY, this.dataTracker.get(SADDLED));
+        nbt.putBoolean(SITTING_NBT_KEY, this.dataTracker.get(SITTING));
+        nbt.putBoolean(TAMED_NBT_KEY, this.dataTracker.get(TAMED));
         this.writeAngerToNbt(nbt);
     }
 
