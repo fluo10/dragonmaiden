@@ -35,7 +35,7 @@ public class HumanDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
         Dragonmaiden.LOGGER.info("ShouldCancelInteraction: {}", player.shouldCancelInteraction());
         if ((player.getUuid() == this.getOwnerUuid())) {
             if (!this.getWorld().isClient) {
-                this.setConverting(player.getUuid(), 60);
+                this.setTransforming(60);
             }
             return ActionResult.SUCCESS;
         }
@@ -43,7 +43,8 @@ public class HumanDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
         return super.interactMob(player, hand);
     }
     
-    protected void finishConversion(ServerWorld world) {
+    @Override
+    protected void finishTransformation(ServerWorld world) {
         PlayerEntity playerEntity;
         BeastDragonmaidenEntity rufinaEntity = this.convertTo(Dragonmaiden.BEAST_DRAGONMAIDEN, false);
 

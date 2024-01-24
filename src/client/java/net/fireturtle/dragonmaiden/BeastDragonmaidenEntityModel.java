@@ -119,10 +119,6 @@ extends TintableAnimalModel<BeastDragonmaidenEntity> {
             this.rightFrontLeg.pitch = MathHelper.cos((float)(f * 0.6662f + (float)Math.PI)) * 1.4f * g;
             this.leftFrontLeg.pitch = MathHelper.cos((float)(f * 0.6662f)) * 1.4f * g;
         }
-        this.realHead.roll = wolfEntity.getBegAnimationProgress(h) + wolfEntity.getShakeAnimationProgress(h, 0.0f);
-        this.neck.roll = wolfEntity.getShakeAnimationProgress(h, -0.08f);
-        this.torso.roll = wolfEntity.getShakeAnimationProgress(h, -0.16f);
-        this.realTail.roll = wolfEntity.getShakeAnimationProgress(h, -0.2f);
     }
 
     @Override

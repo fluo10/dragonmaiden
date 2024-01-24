@@ -69,7 +69,7 @@ public class BeastDragonmaidenEntity extends AbstractDragonmaidenEntity implemen
     }
 
     @Override
-    protected void finishConversion(ServerWorld world) {
+    protected void finishTransformation(ServerWorld world) {
         PlayerEntity playerEntity;
         HumanDragonmaidenEntity rufinaEntity = this.convertTo(Dragonmaiden.HUMAN_DRAGONMAIDEN, false);
 
