@@ -53,6 +53,7 @@ import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -433,6 +434,10 @@ public abstract class AbstractDragonmaidenEntity extends PassiveEntity implement
         }
 
     }
+
+   public boolean areInventoriesDifferent(Inventory inventory) {
+      return this.items != inventory;
+   }
 
     public float getTailAngle() {
         if (this.hasAngerTime()) {
